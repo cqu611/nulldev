@@ -1,4 +1,6 @@
-obj-m := nulldev.o
+#obj-m := nulldev.o
+obj-m := lightnvm.o
+
 CURRENT_PATH := $(shell pwd)
 LINUX_KERNEL_PATH := /root/linufs
 

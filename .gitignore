@@ -10,3 +10,10 @@ nulldev.o
 .nulldev.o.cmd
 .tmp_versions
 
+.lightnvm.ko.cmd
+.lightnvm.mod.o.cmd
+.lightnvm.o.cmd
+lightnvm.ko
+lightnvm.mod.c
+lightnvm.mod.o
+lightnvm.o
