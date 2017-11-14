@@ -37,6 +37,13 @@
 #define UFS_DEVICE_CQU_QEMU	"qemu-test"	/* Not Used */
 #define UFS_VENDOR_CQU		   	0xeeee
 
+static LIST_HEAD(nullnvm_list);
+static struct mutex lock;
+static int nullnvm_major;
+static int nullnvm_indexes;
+static struct kmem_cache *ppa_cache;
+
+
 enum ufs_nvm_opcode {
 	UFS_NVM_ADMIN_IDENTITY		= 0xe1,
 	UFS_NVM_ADMIN_GET_L2P_TBL	= 0xe2,
@@ -691,8 +698,6 @@ static int ufs_nvm_submit_io(struct nvm_dev *nvmdev, struct nvm_rq *rqd)
 	return 0;
 }
 
-static struct kmem_cache *ppa_cache;
-
 static void *ufs_nvm_create_dma_pool(struct nvm_dev *ndev, char *name)
 {
 	struct scsi_disk *sdev = ndev->private_data;
@@ -1059,6 +1064,9 @@ static int __init null_lnvm_init(void)
 	struct request_queue *rq;
 	struct gendisk *gd;
 
+	mutex_init(&lock);
+	nullnvm_major = register_blkdev(0, "nullnvm");
+	
 	pr_info("LIGHTNVM_UFS: null_lnvm_init()\n");
 	if (ufs_nvm_supported(UFS_VENDOR_CQU)) {
 		pr_info("LIGHTNVM_UFS: null_lnvm_init() ufs_nvm supported\n");
@@ -1096,11 +1104,16 @@ static int __init null_lnvm_init(void)
 		sdev->request_queue = rq;
 		rq->queuedata = sdev;
 		gd->queue = rq;
+		memcpy(gd->disk_name, "mmp", DISK_NAME_LEN);
 
 		null_sd->device = sdev;
 		null_sd->disk = gd;
+		
 		pr_info("LIGHTNVM_UFS: null_lnvm_init() begin ufs_nvm_register\n");
 		ufs_nvm_register(null_sd, "mmp");
+		mutex_lock(&lock);
+		list_add_tail(&sdev->siblings, &nullnvm_list);
+		mutex_unlock(&lock);
 		pr_info("LIGHTNVM_UFS: null_lnvm_init() begin ufs_nvm_register_sysfs\n");
 		//ufs_nvm_register_sysfs(null_sd);
 	}
@@ -1110,10 +1123,13 @@ static int __init null_lnvm_init(void)
 
 static void __exit null_lnvm_exit(void)
 {
+
 	pr_info("LIGHTNVM_UFS: null_lnvm_exit()\n");
 	//ufs_nvm_unregister_sysfs(null_sd);
 	pr_info("LIGHTNVM_UFS: null_lnvm_exit() unregister_sysfs completed\n");
 	ufs_nvm_unregister(null_sd);
+
+	unregister_blkdev(nullnvm_major, "nullnvm");
 	kmem_cache_destroy(ppa_cache);
 	pr_info("LIGHTNVM_UFS: null_lnvm_exit() unregister completed\n");
 }
