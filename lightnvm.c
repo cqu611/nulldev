@@ -129,10 +129,62 @@ struct ufs_nvm_bb_tbl {
 
 };
 
-int ufs_submit_sync_cmd(struct request_queue *q, struct scsi_cmnd *cmd,
-				void *buffer, unsigned bufflen);
+static inline bool ufs_nvm_is_write(struct scsi_cmnd *cmd)
+{
+	pr_info("LIGHTNVM_UFS: ufs_nvm_is_write(), started\n");
+	pr_info("LIGHTNVM_UFS: ufs_nvm_is_write(), scsi_cmnd = %#x\n", cmd);
+	pr_info("LIGHTNVM_UFS: ufs_nvm_is_write(), scsi_cmnd->cmnd = %#x\n", cmd->cmnd);
+	if (cmd->cmnd[0] == 0xc4)
+		return 1;
+	return 0;
+}
+
 static inline struct request *ufs_nvm_alloc_request(struct request_queue *q,
-			struct scsi_cmnd *cmd);
+			struct scsi_cmnd *cmd)
+{
+	unsigned op = ufs_nvm_is_write(cmd) ? REQ_OP_DRV_OUT : REQ_OP_DRV_IN;
+	struct request *req;
+
+	pr_info("LIGHTNVM_UFS: ufs_nvm_alloc_request(), started\n");
+	pr_info("LIGHTNVM_UFS: ufs_nvm_alloc_request(), request_queue = %#x\n", q);
+	pr_info("LIGHTNVM_UFS: ufs_nvm_alloc_request(), op = %#x\n", op);
+	return (struct request*)0;
+	req = blk_mq_alloc_request(q, op, 0);
+	if (IS_ERR(req))
+		return req;
+	req->cmd_flags |= REQ_FAILFAST_DRIVER;
+	scsi_req(req)->cmd = cmd->cmnd;
+
+	return req;
+}
+
+int ufs_submit_sync_cmd(struct request_queue *q, struct scsi_cmnd *cmd,
+				void *buffer, unsigned bufflen)
+{
+	struct request *req;
+	int ret;
+	
+	pr_info("LIGHTNVM_UFS: ufs_submit_sync_cmd(), started\n");
+	req = ufs_nvm_alloc_request(q, cmd);
+	if (IS_ERR(req))
+		return PTR_ERR(req);
+
+	if (buffer && bufflen) {
+		ret = blk_rq_map_kern(q, req, buffer, bufflen, GFP_KERNEL);
+		if (ret)
+			goto out;
+	}
+
+	blk_execute_rq(req->q, NULL, req, 0);
+	if (scsi_req(req)->result == DID_OK)
+		return scsi_req(req)->result;
+	else
+		return -EINTR;
+
+out:
+	blk_mq_free_request(req);
+	return ret;
+}
 
 static inline void _ufs_nvm_check_size(void)
 {
@@ -193,6 +245,7 @@ static int init_grps(struct nvm_id *nvmid, struct ufs_nvm_id *ufs_nvmid)
 
 static int ufs_nvm_identity(struct nvm_dev *nvmdev, struct nvm_id *nvmid)
 {
+	return 0;
 	struct scsi_device *sdev = nvmdev->q->queuedata;
 	struct ufs_nvm_id *ufs_nvmid;
 	struct scsi_cmnd *cmd;
@@ -215,6 +268,7 @@ static int ufs_nvm_identity(struct nvm_dev *nvmdev, struct nvm_id *nvmid)
 	for (i=2; i < SCSI_MAX_CDBLEN; i++) {
 		cdb[i] = 0x00;
 	}
+	cmd->cmnd = cdb;
 
 	ret = ufs_submit_sync_cmd(sdev->request_queue, cmd, 
 					ufs_nvmid, sizeof(struct ufs_nvm_id));
@@ -238,6 +292,7 @@ out:
 static int ufs_nvm_get_l2p_tbl(struct nvm_dev *nvmdev, u64 slba, u32 nlb,
 				nvm_l2p_update_fn *update_l2p, void *priv)
 {
+	return 0;
 	struct scsi_device *sdev = nvmdev->q->queuedata;
 	struct scsi_cmnd *cmd;
 	u32 len = queue_max_hw_sectors(sdev->request_queue) << 9;
@@ -263,6 +318,7 @@ static int ufs_nvm_get_l2p_tbl(struct nvm_dev *nvmdev, u64 slba, u32 nlb,
 	entries = kmalloc(len, GFP_KERNEL);
 	if (!entries)
 		return -ENOMEM;
+	cmd->cmnd = cdb;
 
 	while (nlb) {
 		u32 cmd_nlb = min(nlb_pr_rq, nlb);
@@ -314,6 +370,7 @@ out:
 static int ufs_nvm_get_bb_tbl(struct nvm_dev *nvmdev, struct ppa_addr ppa,
 				u8 *blks)
 {
+	return 0;
 	struct request_queue *q = nvmdev->q;
 	struct nvm_geo *geo = &nvmdev->geo;
 	struct scsi_device *sdev = q->queuedata;
@@ -379,6 +436,7 @@ out:
 static int ufs_nvm_set_bb_tbl(struct nvm_dev *nvmdev, struct ppa_addr *ppas,
 				int nr_ppas, int type)
 {
+	return 0;
 	struct request_queue *q = nvmdev->q;
 	struct scsi_device *sdev = q->queuedata;
 	struct scsi_cmnd *cmd;
@@ -408,34 +466,6 @@ static int ufs_nvm_set_bb_tbl(struct nvm_dev *nvmdev, struct ppa_addr *ppas,
 	ret = ufs_submit_sync_cmd(sdev->request_queue, cmd, NULL, 0);
 	if (ret)
 		dev_err(&(sdev->sdev_dev), "set bad block table failed (%d)\n", ret);
-	return ret;
-}
-
-int ufs_submit_sync_cmd(struct request_queue *q, struct scsi_cmnd *cmd,
-				void *buffer, unsigned bufflen)
-{
-	struct request *req;
-	int ret;
-	
-	pr_info("LIGHTNVM_UFS: ufs_submit_sync_cmd(), started\n");
-	req = ufs_nvm_alloc_request(q, cmd);
-	if (IS_ERR(req))
-		return PTR_ERR(req);
-
-	if (buffer && bufflen) {
-		ret = blk_rq_map_kern(q, req, buffer, bufflen, GFP_KERNEL);
-		if (ret)
-			goto out;
-	}
-
-	blk_execute_rq(req->q, NULL, req, 0);
-	if (scsi_req(req)->result == DID_OK)
-		return scsi_req(req)->result;
-	else
-		return -EINTR;
-
-out:
-	blk_mq_free_request(req);
 	return ret;
 }
 
@@ -502,32 +532,9 @@ static void ufs_nvm_end_io(struct request *rq, int error)
 	blk_mq_free_request(rq);
 }
 
-static inline bool ufs_nvm_is_write(struct scsi_cmnd *cmd)
-{
-	pr_info("LIGHTNVM_UFS: ufs_nvm_is_write(), started\n");
-	if (cmd->cmnd[0] == 0xc4)
-		return 1;
-	return 0;
-}
-
-static inline struct request *ufs_nvm_alloc_request(struct request_queue *q,
-			struct scsi_cmnd *cmd)
-{
-	unsigned op = ufs_nvm_is_write(cmd) ? REQ_OP_DRV_OUT : REQ_OP_DRV_IN;
-	struct request *req;
-
-	pr_info("LIGHTNVM_UFS: ufs_nvm_alloc_request(), started\n");
-	req = blk_mq_alloc_request(q, op, 0);
-	if (IS_ERR(req))
-		return req;
-	req->cmd_flags |= REQ_FAILFAST_DRIVER;
-	scsi_req(req)->cmd = cmd->cmnd;
-
-	return req;
-}
-
 static int ufs_nvm_submit_io(struct nvm_dev *nvmdev, struct nvm_rq *rqd)
 {
+	return 0;
 	struct request_queue *q = nvmdev->q;
 	struct scsi_device *sdev = q->queuedata;
 	struct request *rq;
@@ -566,8 +573,17 @@ static void *ufs_nvm_create_dma_pool(struct nvm_dev *ndev, char *name)
 	struct scsi_disk *sdev = ndev->private_data;
 
 	pr_info("LIGHTNVM_UFS: ufs_nvm_create_dma_pool(), started\n");
-	return dma_pool_create(name, &(sdev->dev), PAGE_SIZE, PAGE_SIZE, 0);
-	return 0;
+	pr_info("LIGHTNVM_UFS: ufs_nvm_create_dma_pool(), nvm_dev->ops = %#x\n", ndev->ops);
+	pr_info("LIGHTNVM_UFS: ufs_nvm_create_dma_pool(), nvm_dev->dma_pool = %#x\n", ndev->dma_pool);
+	pr_info("LIGHTNVM_UFS: ufs_nvm_create_dma_pool(), nvm_dev->q = %#x\n", ndev->q);
+	pr_info("LIGHTNVM_UFS: ufs_nvm_create_dma_pool(), nvm_dev->private_data = %#x\n", ndev->private_data);
+	pr_info("LIGHTNVM_UFS: ufs_nvm_create_dma_pool(), scsi_disk->driver = %#x\n", sdev->driver);
+	pr_info("LIGHTNVM_UFS: ufs_nvm_create_dma_pool(), scsi_disk->device = %#x\n", sdev->device);
+	pr_info("LIGHTNVM_UFS: ufs_nvm_create_dma_pool(), scsi_disk->dev = %#x\n", sdev->dev);
+	pr_info("LIGHTNVM_UFS: ufs_nvm_create_dma_pool(), scsi_disk->disk = %#x\n", sdev->disk);
+	pr_info("LIGHTNVM_UFS: ufs_nvm_create_dma_pool(), scsi_disk->nvmdev = %#x\n", sdev->nvmdev);
+	//return dma_pool_create(name, &(sdev->dev), PAGE_SIZE, PAGE_SIZE, 0);
+	return 1;
 }
 
 static void ufs_nvm_destroy_dma_pool(void *pool) 
@@ -907,7 +923,8 @@ static int __init null_lnvm_init(void)
 	struct gendisk *gd;
 
 	pr_info("LIGHTNVM_UFS: null_lnvm_init()\n");
-	if (ufs_nvm_supported(0)) {
+	if (ufs_nvm_supported(UFS_VENDOR_CQU)) {
+		pr_info("LIGHTNVM_UFS: null_lnvm_init() ufs_nvm supported\n");
 		
 		null_sd = kzalloc(sizeof(struct scsi_disk), GFP_KERNEL);
 		if (!null_sd) {
@@ -939,9 +956,12 @@ static int __init null_lnvm_init(void)
 
 		null_sd->device = sdev;
 		null_sd->disk = gd;
+		pr_info("LIGHTNVM_UFS: null_lnvm_init() begin ufs_nvm_register\n");
 		ufs_nvm_register(null_sd, "mmp");
+		pr_info("LIGHTNVM_UFS: null_lnvm_init() begin ufs_nvm_register_sysfs\n");
 		ufs_nvm_register_sysfs(null_sd);
 	}
+	pr_info("LIGHTNVM_UFS: null_lnvm_init() completed\n");
 	return 0;
 }
 
@@ -949,7 +969,9 @@ static void __exit null_lnvm_exit(void)
 {
 	pr_info("LIGHTNVM_UFS: null_lnvm_exit()\n");
 	ufs_nvm_unregister_sysfs(null_sd);
+	pr_info("LIGHTNVM_UFS: null_lnvm_exit() unregister_sysfs completed\n");
 	ufs_nvm_unregister(null_sd);
+	pr_info("LIGHTNVM_UFS: null_lnvm_exit() unregister completed\n");
 }
 
 module_init(null_lnvm_init);
