@@ -182,7 +182,7 @@ int nullnvm_identity(struct scsi_cmnd *cmd, struct ufs_nvm_id *id, unsigned buff
 	id->ppaf.lun_len = 8;
 	id->ppaf.ch_offset = 56;
 	id->ppaf.ch_len = 8;
-				
+	
 	sector_div(size, 512); /* convert size to pages */
 	size >>= 8; /* concert size to pgs pr blk */
 	grp = &id->groups[0];
@@ -207,7 +207,45 @@ int nullnvm_identity(struct scsi_cmnd *cmd, struct ufs_nvm_id *id, unsigned buff
 	grp->tbem = 1500000;
 	grp->mpos = 0x010101; /* single plane rwe */
 	grp->cpar = 64;
-				
+
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->ver_id = %#x\n", id->ver_id);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->vmnt = %#x\n", id->vmnt);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->cgrps = %#x\n", id->cgrps);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->cap = %#x\n", id->cap);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->dom = %#x\n", id->dom);
+
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->ppaf.blk_offset = %#x\n", id->ppaf.blk_offset);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->ppaf.blk_len = %#x\n", id->ppaf.blk_len);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->ppaf.pg_offset = %#x\n", id->ppaf.pg_offset);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->ppaf.pg_len = %#x\n", id->ppaf.pg_len);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->ppaf.sect_offset = %#x\n", id->ppaf.sect_offset);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->ppaf.sect_len = %#x\n", id->ppaf.sect_len);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->ppaf.pln_offset = %#x\n", id->ppaf.pln_offset);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->ppaf.pln_len = %#x\n", id->ppaf.pln_len);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->ppaf.lun_offset = %#x\n", id->ppaf.lun_offset);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->ppaf.lun_len = %#x\n", id->ppaf.lun_len);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->ppaf.ch_offset = %#x\n", id->ppaf.ch_offset);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), id->ppaf.ch_len = %#x\n", id->ppaf.ch_len);
+
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->mtype = %#x\n", grp->mtype);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->fmtype = %#x\n", grp->fmtype);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->num_ch = %#x\n", grp->num_ch);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->num_pg = %#x\n", grp->num_pg);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->num_lun = %#x\n", grp->num_lun);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->num_blk = %#x\n", grp->num_blk);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->num_pln = %#x\n", grp->num_pln);
+	
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->fpg_sz = %#x\n", grp->fpg_sz);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->fpg_sz = %#x\n", grp->fpg_sz);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->csecs = %#x\n", grp->csecs);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->trdt = %#x\n", grp->trdt);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->trdm = %#x\n", grp->trdm);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->tprt = %#x\n", grp->tprt);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->tprm = %#x\n", grp->tprm);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->tbet = %#x\n", grp->tbet);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->tbem = %#x\n", grp->tbem);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->mpos = %#x\n", grp->mpos);
+	pr_info("LIGHTNVM_UFS: nullnvm_identity(), grp->cpar = %#x\n", grp->cpar);
 	return 0;
 }
 
