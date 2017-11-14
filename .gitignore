@@ -4,3 +4,9 @@ nulldev.ko
 nulldev.mod.c
 nulldev.mod.o
 nulldev.o
+
+.nulldev.ko.cmd
+.nulldev.mod.o.cmd
+.nulldev.o.cmd
+.tmp_versions
+
