@@ -1054,7 +1054,7 @@ static int __init null_lnvm_init(void)
 		pr_info("LIGHTNVM_UFS: null_lnvm_init() begin ufs_nvm_register\n");
 		ufs_nvm_register(null_sd, "mmp");
 		pr_info("LIGHTNVM_UFS: null_lnvm_init() begin ufs_nvm_register_sysfs\n");
-		ufs_nvm_register_sysfs(null_sd);
+		//ufs_nvm_register_sysfs(null_sd);
 	}
 	pr_info("LIGHTNVM_UFS: null_lnvm_init() completed\n");
 	return 0;
