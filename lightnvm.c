@@ -162,10 +162,11 @@ int nullnvm_identity(struct scsi_cmnd *cmd, struct ufs_nvm_id *id, unsigned buff
 {
 	sector_t size = 250 * 1024 * 1024 * 1024ULL;
 	sector_t blksize;
-	struct nvm_id_group *grp;
+	struct ufs_nvm_id_group *grp;
 				
 	id->ver_id = 0x1;
 	id->vmnt = 0;
+	id->cgrps = 1;
 	id->cap = 0x2;
 	id->dom = 0x1;
 
