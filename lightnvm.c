@@ -1087,6 +1087,12 @@ static int __init null_lnvm_init(void)
 			return -EINVAL;
 		}
 
+		ppa_cache = kmem_cache_create("ppa_cache", 64 * sizeof(u64), 0, 0, NULL);
+		if (!ppa_cache) {
+			pr_info("LIGHTNVM_UFS: null_lnvm_init() unable to create ppa cache\n");
+			return -ENOMEM;
+		}
+
 		sdev->request_queue = rq;
 		rq->queuedata = sdev;
 		gd->queue = rq;
@@ -1108,6 +1114,7 @@ static void __exit null_lnvm_exit(void)
 	//ufs_nvm_unregister_sysfs(null_sd);
 	pr_info("LIGHTNVM_UFS: null_lnvm_exit() unregister_sysfs completed\n");
 	ufs_nvm_unregister(null_sd);
+	kmem_cache_destroy(ppa_cache);
 	pr_info("LIGHTNVM_UFS: null_lnvm_exit() unregister completed\n");
 }
 
