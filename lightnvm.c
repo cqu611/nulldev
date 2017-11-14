@@ -1066,6 +1066,7 @@ static int __init null_lnvm_init(void)
 
 	mutex_init(&lock);
 	nullnvm_major = register_blkdev(0, "nullnvm");
+	pr_info("LIGHTNVM_UFS: null_lnvm_init(), nullnvm_major = %#x\n", nullnvm_major);
 	
 	pr_info("LIGHTNVM_UFS: null_lnvm_init()\n");
 	if (ufs_nvm_supported(UFS_VENDOR_CQU)) {
