@@ -158,8 +158,9 @@ static inline struct request *ufs_nvm_alloc_request(struct request_queue *q,
 	return req;
 }
 
-int nullnvm_identity(struct scsi_cmnd *cmd, struct ufs_nvm_id *id, unsigned bufflen) {
-	sector_t size = gb * 1024 * 1024 * 1024ULL;
+int nullnvm_identity(struct scsi_cmnd *cmd, struct ufs_nvm_id *id, unsigned bufflen) 
+{
+	sector_t size = 250 * 1024 * 1024 * 1024ULL;
 	sector_t blksize;
 	struct nvm_id_group *grp;
 				
@@ -181,9 +182,9 @@ int nullnvm_identity(struct scsi_cmnd *cmd, struct ufs_nvm_id *id, unsigned buff
 	id->ppaf.ch_offset = 56;
 	id->ppaf.ch_len = 8;
 				
-	sector_div(size, bs); /* convert size to pages */
+	sector_div(size, 512); /* convert size to pages */
 	size >>= 8; /* concert size to pgs pr blk */
-	grp = &id->groups;
+	grp = &id->groups[0];
 	grp->mtype = 0;
 	grp->fmtype = 0;
 	grp->num_ch = 1;
@@ -195,8 +196,8 @@ int nullnvm_identity(struct scsi_cmnd *cmd, struct ufs_nvm_id *id, unsigned buff
 	grp->num_blk = blksize;
 	grp->num_pln = 1;
 
-	grp->fpg_sz = bs;
-	grp->csecs = bs;
+	grp->fpg_sz = 512;
+	grp->csecs = 512;
 	grp->trdt = 25000;
 	grp->trdm = 25000;
 	grp->tprt = 500000;
@@ -204,7 +205,7 @@ int nullnvm_identity(struct scsi_cmnd *cmd, struct ufs_nvm_id *id, unsigned buff
 	grp->tbet = 1500000;
 	grp->tbem = 1500000;
 	grp->mpos = 0x010101; /* single plane rwe */
-	grp->cpar = hw_queue_depth;
+	grp->cpar = 64;
 				
 	return 0;
 }
@@ -217,7 +218,7 @@ int ufs_submit_sync_cmd(struct request_queue *q, struct scsi_cmnd *cmd,
 
 	if (cmd->cmnd[0] == UFS_NVM_ADMIN_IDENTITY) {
 		pr_info("LIGHTNVM_UFS: ufs_submit_sync_cmd(), cmd = UFS_NVM_ADMIN_IDENTITY\n");
-		return nullnvm_identity(struct scsi_cmnd *cmd, (struct ufs_nvm_id*) buffer, bufflen);
+		return nullnvm_identity(cmd, (struct ufs_nvm_id*) buffer, bufflen);
 	}
 	
 	pr_info("LIGHTNVM_UFS: ufs_submit_sync_cmd(), started\n");
