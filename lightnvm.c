@@ -1105,7 +1105,7 @@ static int __init null_lnvm_init(void)
 static void __exit null_lnvm_exit(void)
 {
 	pr_info("LIGHTNVM_UFS: null_lnvm_exit()\n");
-	ufs_nvm_unregister_sysfs(null_sd);
+	//ufs_nvm_unregister_sysfs(null_sd);
 	pr_info("LIGHTNVM_UFS: null_lnvm_exit() unregister_sysfs completed\n");
 	ufs_nvm_unregister(null_sd);
 	pr_info("LIGHTNVM_UFS: null_lnvm_exit() unregister completed\n");
