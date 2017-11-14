@@ -341,7 +341,6 @@ static int init_grps(struct nvm_id *nvmid, struct ufs_nvm_id *ufs_nvmid)
 
 static int ufs_nvm_identity(struct nvm_dev *nvmdev, struct nvm_id *nvmid)
 {
-	return 0;
 	struct scsi_device *sdev = nvmdev->q->queuedata;
 	struct ufs_nvm_id *ufs_nvmid;
 	struct scsi_cmnd *cmd;
