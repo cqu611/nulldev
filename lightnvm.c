@@ -158,11 +158,67 @@ static inline struct request *ufs_nvm_alloc_request(struct request_queue *q,
 	return req;
 }
 
+int nullnvm_identity(struct scsi_cmnd *cmd, struct ufs_nvm_id *id, unsigned bufflen) {
+	sector_t size = gb * 1024 * 1024 * 1024ULL;
+	sector_t blksize;
+	struct nvm_id_group *grp;
+				
+	id->ver_id = 0x1;
+	id->vmnt = 0;
+	id->cap = 0x2;
+	id->dom = 0x1;
+
+	id->ppaf.blk_offset = 0;
+	id->ppaf.blk_len = 16;
+	id->ppaf.pg_offset = 16;
+	id->ppaf.pg_len = 16;
+	id->ppaf.sect_offset = 32;
+	id->ppaf.sect_len = 8;
+	id->ppaf.pln_offset = 40;
+	id->ppaf.pln_len = 8;
+	id->ppaf.lun_offset = 48;
+	id->ppaf.lun_len = 8;
+	id->ppaf.ch_offset = 56;
+	id->ppaf.ch_len = 8;
+				
+	sector_div(size, bs); /* convert size to pages */
+	size >>= 8; /* concert size to pgs pr blk */
+	grp = &id->groups;
+	grp->mtype = 0;
+	grp->fmtype = 0;
+	grp->num_ch = 1;
+	grp->num_pg = 256;
+	blksize = size;
+	size >>= 16;
+	grp->num_lun = size + 1;
+	sector_div(blksize, grp->num_lun);
+	grp->num_blk = blksize;
+	grp->num_pln = 1;
+
+	grp->fpg_sz = bs;
+	grp->csecs = bs;
+	grp->trdt = 25000;
+	grp->trdm = 25000;
+	grp->tprt = 500000;
+	grp->tprm = 500000;
+	grp->tbet = 1500000;
+	grp->tbem = 1500000;
+	grp->mpos = 0x010101; /* single plane rwe */
+	grp->cpar = hw_queue_depth;
+				
+	return 0;
+}
+
 int ufs_submit_sync_cmd(struct request_queue *q, struct scsi_cmnd *cmd,
 				void *buffer, unsigned bufflen)
 {
 	struct request *req;
 	int ret;
+
+	if (cmd->cmnd[0] == UFS_NVM_ADMIN_IDENTITY) {
+		pr_info("LIGHTNVM_UFS: ufs_submit_sync_cmd(), cmd = UFS_NVM_ADMIN_IDENTITY\n");
+		return nullnvm_identity(struct scsi_cmnd *cmd, (struct ufs_nvm_id*) buffer, bufflen);
+	}
 	
 	pr_info("LIGHTNVM_UFS: ufs_submit_sync_cmd(), started\n");
 	req = ufs_nvm_alloc_request(q, cmd);
