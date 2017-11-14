@@ -1068,7 +1068,6 @@ static int __init null_lnvm_init(void)
 	nullnvm_major = register_blkdev(0, "nullnvm");
 	pr_info("LIGHTNVM_UFS: null_lnvm_init(), nullnvm_major = %#x\n", nullnvm_major);
 	
-	pr_info("LIGHTNVM_UFS: null_lnvm_init()\n");
 	if (ufs_nvm_supported(UFS_VENDOR_CQU)) {
 		pr_info("LIGHTNVM_UFS: null_lnvm_init() ufs_nvm supported\n");
 		
@@ -1105,7 +1104,7 @@ static int __init null_lnvm_init(void)
 		sdev->request_queue = rq;
 		rq->queuedata = sdev;
 		gd->queue = rq;
-		memcpy(gd->disk_name, "mmp", DISK_NAME_LEN);
+		memcpy(gd->disk_name, "mmp1", DISK_NAME_LEN);
 
 		null_sd->device = sdev;
 		null_sd->disk = gd;
