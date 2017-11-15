@@ -664,12 +664,12 @@ static void ufs_nvm_end_io(struct request *rq, int error)
 
 static int ufs_nvm_submit_io(struct nvm_dev *nvmdev, struct nvm_rq *rqd)
 {
-	return 0;
 	struct request_queue *q = nvmdev->q;
 	struct scsi_device *sdev = q->queuedata;
 	struct request *rq;
 	struct bio *bio = rqd->bio;
 	struct scsi_cmnd *cmd;
+	int i=0;
 
 	pr_info("LIGHTNVM_UFS: ufs_nvm_submit_io(), started\n");
 	cmd = kzalloc(sizeof(struct scsi_cmnd), GFP_KERNEL);
@@ -677,6 +677,9 @@ static int ufs_nvm_submit_io(struct nvm_dev *nvmdev, struct nvm_rq *rqd)
 		return -ENOMEM;
 
 	ufs_nvm_rq2cmd(rqd, sdev, cmd);
+	for (i=0; i < 16; i++)
+		pr_info("LIGHTNVM_UFS: ufs_nvm_submit_io(), cdb[%d] = %#x\n", i, cmd->cmnd[i]);
+	return 0;
 
 	rq = ufs_nvm_alloc_request(q, cmd);
 	if (IS_ERR(rq)) {
