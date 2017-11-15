@@ -1077,6 +1077,7 @@ static int __init null_lnvm_init(void)
 	struct scsi_device *sdev;
 	struct request_queue *rq;
 	struct gendisk *gd;
+	sector_t size;
 
 	mutex_init(&lock);
 	nullnvm_major = register_blkdev(0, "nullnvm");
@@ -1127,13 +1128,13 @@ static int __init null_lnvm_init(void)
 		gd->flags |= GENHD_FL_EXT_DEVT | GENHD_FL_SUPPRESS_PARTITION_INFO;
 		gd->major		= nullnvm_major;
 		gd->first_minor	= 7;
-		gd->fops		= &null_fops;
+		gd->fops		= &nullnvm_fops;
 		gd->private_data	= null_sd;
-		strncpy(gd->disk_name, "mmp1", DISK_NAME_LEN);
+		strncpy(gd->disk_name, "lightnvm-ufs", DISK_NAME_LEN);
 		add_disk(gd);
 		
 		pr_info("LIGHTNVM_UFS: null_lnvm_init() begin ufs_nvm_register\n");
-		ufs_nvm_register(null_sd, "mmp");
+		ufs_nvm_register(null_sd, "lightnvm-ufs");
 		mutex_lock(&lock);
 		list_add_tail(&sdev->siblings, &nullnvm_list);
 		mutex_unlock(&lock);
