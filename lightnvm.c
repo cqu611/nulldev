@@ -1069,6 +1069,7 @@ static int nullnvm_queue_rq(struct blk_mq_hw_ctx *hctx,
 			 const struct blk_mq_queue_data *bd)
 {
 	return BLK_MQ_RQ_QUEUE_OK;
+	/*
 	struct nullb_cmd *cmd = blk_mq_rq_to_pdu(bd->rq);
 
 	might_sleep_if(hctx->flags & BLK_MQ_F_BLOCKING);
@@ -1084,11 +1085,13 @@ static int nullnvm_queue_rq(struct blk_mq_hw_ctx *hctx,
 
 	null_handle_cmd(cmd);
 	return BLK_MQ_RQ_QUEUE_OK;
+	*/
 }
 
 static int nullnvm_init_hctx(struct blk_mq_hw_ctx *hctx, void *data, unsigned int index)
 {
 	return 0;
+	/*
 	struct nullb *nullb = data;
 	struct nullb_queue *nq = &nullb->queues[index];
 			 
@@ -1097,14 +1100,17 @@ static int nullnvm_init_hctx(struct blk_mq_hw_ctx *hctx, void *data, unsigned in
 	nullb->nr_queues++;
 			 
 	return 0;
+	*/
 }
 
 static void nullnvm_softirq_done_fn(struct request *rq)
 {
+	/*
 	if (queue_mode == NULL_Q_MQ)
 		end_cmd(blk_mq_rq_to_pdu(rq));
 	else
 		end_cmd(rq->special);
+	*/
 }
 
 struct scsi_disk *null_sd;
