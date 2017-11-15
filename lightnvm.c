@@ -1077,6 +1077,7 @@ static int __init null_lnvm_init(void)
 	struct scsi_device *sdev;
 	struct request_queue *rq;
 	struct gendisk *gd;
+	struct blk_mq_tag_set tag_set;
 
 	mutex_init(&lock);
 	nullnvm_major = register_blkdev(0, "nullnvm");
@@ -1115,10 +1116,26 @@ static int __init null_lnvm_init(void)
 			return -ENOMEM;
 		}
 
-		sdev->request_queue = rq;
+		tag_set.ops = &null_mq_ops;
+		tag_set.nr_hw_queues = 1;
+		tag_set.queue_depth = 64;
+		tag_set.numa_node = NUMA_NO_NODE;
+		tag_set.cmd_size = sizeof(struct scsi_cmnd);
+		tag_set.flags = BLK_MQ_F_SHOULD_MERGE;
+		tag_set.driver_data = null_sd;	
+		
+		blk_mq_alloc_tag_set(&tag_set);
+		rq = blk_mq_init_queue(&tag_set);
+		
 		rq->queuedata = sdev;
-		gd->queue = rq;
+		
+		queue_flag_set_unlocked(QUEUE_FLAG_NONROT, rq);
+		queue_flag_clear_unlocked(QUEUE_FLAG_ADD_RANDOM, rq);
+		blk_queue_logical_block_size(rq, 512);
+		blk_queue_physical_block_size(rq, 512);
 
+		sdev->request_queue = rq;
+		gd->queue = rq;
 		null_sd->device = sdev;
 		null_sd->disk = gd;
 
