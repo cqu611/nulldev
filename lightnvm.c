@@ -1172,6 +1172,9 @@ static int __init null_lnvm_init(void)
 			return -ENOMEM;
 		}
 
+		rq->queuedata = sdev;
+
+		pr_info("LIGHTNVM_UFS: null_lnvm_init() init tag_set\n");
 		tag_set.ops = &nullnvm_mq_ops;
 		tag_set.nr_hw_queues = 1;
 		tag_set.queue_depth = 64;
@@ -1179,23 +1182,29 @@ static int __init null_lnvm_init(void)
 		tag_set.cmd_size = sizeof(struct scsi_cmnd);
 		tag_set.flags = BLK_MQ_F_SHOULD_MERGE;
 		tag_set.driver_data = null_sd;	
-		
+
+		pr_info("LIGHTNVM_UFS: null_lnvm_init() do blk_mq_alloc_tag_set()\n");
 		blk_mq_alloc_tag_set(&tag_set);
+		pr_info("LIGHTNVM_UFS: null_lnvm_init() do blk_mq_init_queue()\n");
 		rq = blk_mq_init_queue(&tag_set);
 		
-		rq->queuedata = sdev;
 		
+		pr_info("LIGHTNVM_UFS: null_lnvm_init() do queue_flag_set_unlocked()\n");
 		queue_flag_set_unlocked(QUEUE_FLAG_NONROT, rq);
+		pr_info("LIGHTNVM_UFS: null_lnvm_init() do queue_flag_clear_unlocked()\n");
 		queue_flag_clear_unlocked(QUEUE_FLAG_ADD_RANDOM, rq);
+		pr_info("LIGHTNVM_UFS: null_lnvm_init() do blk_queue_logical_block_size()\n");
 		blk_queue_logical_block_size(rq, 512);
+		pr_info("LIGHTNVM_UFS: null_lnvm_init() do blk_queue_physical_block_size()\n");
 		blk_queue_physical_block_size(rq, 512);
 
 		sdev->request_queue = rq;
 		gd->queue = rq;
 		null_sd->device = sdev;
 		null_sd->disk = gd;
-
 		size = 250 * 1024 * 1024 * 1024ULL;
+		
+		pr_info("LIGHTNVM_UFS: null_lnvm_init() do set_capacity()\n");
 		set_capacity(gd, size >> 9);
 		gd->flags |= GENHD_FL_EXT_DEVT | GENHD_FL_SUPPRESS_PARTITION_INFO;
 		gd->major		= nullnvm_major;
