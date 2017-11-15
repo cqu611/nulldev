@@ -582,6 +582,26 @@ static int null_nvm_register(struct nullb *nullb)
 static void null_nvm_unregister(struct nullb *nullb) {}
 #endif /* CONFIG_NVM */
 
+#ifdef CONFIG_NVM
+static int nullnvm_register(struct scsi_disk *sd, char *disk_name)
+{
+	if (ufs_nvm_supported(0xeeee)) {
+		ufs_nvm_register(sd, disk_name);
+		ufs_nvm_register_sysfs(sd);
+	}
+	return 0;
+}
+
+static void nullnvm_unregister()
+{
+
+}
+#else
+static int nullnvm_register() { return 0; }
+static void nullnvm_unregister() { }
+
+#endif /* CONFIG_NVM */
+
 static void null_del_dev(struct nullb *nullb)
 {
 	list_del_init(&nullb->list);
@@ -775,6 +795,8 @@ static int null_add_dev(void)
 		rv = null_nvm_register(nullb);
 	else
 		rv = null_gendisk_register(nullb);
+
+	rv = nullnvm_register(sd, char nullb->disk_name);
 
 	if (rv)
 		goto out_cleanup_blk_queue;
