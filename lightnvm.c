@@ -1065,11 +1065,60 @@ static int nullnvm_open(struct block_device *bdev, fmode_t mode)
 
 static void nullnvm_release(struct gendisk *disk, fmode_t mode) { }
 
+static int nullnvm_queue_rq(struct blk_mq_hw_ctx *hctx,
+			 const struct blk_mq_queue_data *bd)
+{
+	return BLK_MQ_RQ_QUEUE_OK;
+	struct nullb_cmd *cmd = blk_mq_rq_to_pdu(bd->rq);
+
+	might_sleep_if(hctx->flags & BLK_MQ_F_BLOCKING);
+
+	if (irqmode == NULL_IRQ_TIMER) {
+		hrtimer_init(&cmd->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+		cmd->timer.function = null_cmd_timer_expired;
+	}
+	cmd->rq = bd->rq;
+	cmd->nq = hctx->driver_data;
+
+	blk_mq_start_request(bd->rq);
+
+	null_handle_cmd(cmd);
+	return BLK_MQ_RQ_QUEUE_OK;
+}
+
+static int nullnvm_init_hctx(struct blk_mq_hw_ctx *hctx, void *data, unsigned int index)
+{
+	return 0;
+	struct nullb *nullb = data;
+	struct nullb_queue *nq = &nullb->queues[index];
+			 
+	hctx->driver_data = nq;
+	null_init_queue(nullb, nq);
+	nullb->nr_queues++;
+			 
+	return 0;
+}
+
+static void nullnvm_softirq_done_fn(struct request *rq)
+{
+	if (queue_mode == NULL_Q_MQ)
+		end_cmd(blk_mq_rq_to_pdu(rq));
+	else
+		end_cmd(rq->special);
+}
+
 struct scsi_disk *null_sd;
+
 static const struct block_device_operations nullnvm_fops = {
-	.owner =	THIS_MODULE,
-	.open =		nullnvm_open,
-	.release =	nullnvm_release,
+	.owner 		=	THIS_MODULE,
+	.open 		=	nullnvm_open,
+	.release 	=	nullnvm_release,
+};
+
+static const struct blk_mq_ops nullnvm_mq_ops = {
+	.queue_rq	= nullnvm_queue_rq,
+	.init_hctx	= nullnvm_init_hctx,
+	.complete	= nullnvm_softirq_done_fn,
 };
 
 static int __init null_lnvm_init(void) 
@@ -1117,7 +1166,7 @@ static int __init null_lnvm_init(void)
 			return -ENOMEM;
 		}
 
-		tag_set.ops = &null_mq_ops;
+		tag_set.ops = &nullnvm_mq_ops;
 		tag_set.nr_hw_queues = 1;
 		tag_set.queue_depth = 64;
 		tag_set.numa_node = NUMA_NO_NODE;
