@@ -844,8 +844,6 @@ int ufs_nvm_ioctl(struct scsi_disk *sd, unsigned int cmd, void __user *arg)
 		return -ENOTTY;
 	}
 }
-EXPORT_SYMBOL(ufs_nvm_ioctl);
-
 
 int ufs_nvm_register(struct scsi_disk *sd, char *disk_name)
 {
@@ -871,8 +869,6 @@ int ufs_nvm_register(struct scsi_disk *sd, char *disk_name)
 	pr_info("LIGHTNVM_UFS: ufs_nvm_register(), completed\n");
 	return nvm_register(dev);
 }
-EXPORT_SYMBOL(ufs_nvm_register);
-
 
 void ufs_nvm_unregister(struct scsi_disk *sd) 
 {
@@ -880,8 +876,6 @@ void ufs_nvm_unregister(struct scsi_disk *sd)
 	nvm_unregister(sd->nvmdev);
 	pr_info("LIGHTNVM_UFS: ufs_nvm_unregister(), completed\n");
 }
-EXPORT_SYMBOL(ufs_nvm_unregister);
-
 
 static ssize_t nvm_dev_attr_show(struct device *dev,
 				struct device_attribute *dattr, char *page)
@@ -1040,8 +1034,6 @@ int ufs_nvm_register_sysfs(struct scsi_disk *sd)
 	return sysfs_create_group(&disk_to_dev(sd->disk)->kobj, &nvm_dev_attr_group);
 	pr_info("LIGHTNVM_UFS: ufs_nvm_register_sysfs(), completed\n");
 }
-EXPORT_SYMBOL(ufs_nvm_register_sysfs);
-
 
 void ufs_nvm_unregister_sysfs(struct scsi_disk *sd)
 {
@@ -1049,7 +1041,6 @@ void ufs_nvm_unregister_sysfs(struct scsi_disk *sd)
 	sysfs_remove_group(&disk_to_dev(sd->disk)->kobj, &nvm_dev_attr_group);
 	pr_info("LIGHTNVM_UFS: ufs_nvm_unregister_sysfs(), completed\n");
 }
-EXPORT_SYMBOL(ufs_nvm_unregister_sysfs);
 
 int ufs_nvm_supported(u16 vendor_id)
 {
@@ -1066,9 +1057,20 @@ int ufs_nvm_supported(u16 vendor_id)
 	pr_info("LIGHTNVM_UFS: ufs_nvm_supported(), current device is %x\n", vendor_id);
 	return 0;		
 }
-EXPORT_SYMBOL(ufs_nvm_supported);
+
+static int nullnvm_open(struct block_device *bdev, fmode_t mode)
+{
+	return 0;
+}
+
+static void nullnvm_release(struct gendisk *disk, fmode_t mode) { }
 
 struct scsi_disk *null_sd;
+static const struct block_device_operations nullnvm_fops = {
+	.owner =	THIS_MODULE,
+	.open =		nullnvm_open,
+	.release =	nullnvm_release,
+};
 
 static int __init null_lnvm_init(void) 
 {
@@ -1094,7 +1096,7 @@ static int __init null_lnvm_init(void)
 			pr_info("LIGHTNVM_UFS: null_lnvm_init() alloc_disk failed\n");
 			return -EINVAL;
 		}
-
+		
 		rq = blk_alloc_queue_node(GFP_KERNEL, NUMA_NO_NODE);
 		if (!rq) {
 			pr_info("LIGHTNVM_UFS: null_lnvm_init() alloc_queue failed\n");
@@ -1116,10 +1118,19 @@ static int __init null_lnvm_init(void)
 		sdev->request_queue = rq;
 		rq->queuedata = sdev;
 		gd->queue = rq;
-		memcpy(gd->disk_name, "mmp1", DISK_NAME_LEN);
 
 		null_sd->device = sdev;
 		null_sd->disk = gd;
+
+		size = 250 * 1024 * 1024 * 1024ULL;
+		set_capacity(gd, size >> 9);
+		gd->flags |= GENHD_FL_EXT_DEVT | GENHD_FL_SUPPRESS_PARTITION_INFO;
+		gd->major		= nullnvm_major;
+		gd->first_minor	= 7;
+		gd->fops		= &null_fops;
+		gd->private_data	= null_sd;
+		strncpy(gd->disk_name, "mmp1", DISK_NAME_LEN);
+		add_disk(gd);
 		
 		pr_info("LIGHTNVM_UFS: null_lnvm_init() begin ufs_nvm_register\n");
 		ufs_nvm_register(null_sd, "mmp");
@@ -1135,7 +1146,6 @@ static int __init null_lnvm_init(void)
 
 static void __exit null_lnvm_exit(void)
 {
-
 	pr_info("LIGHTNVM_UFS: null_lnvm_exit()\n");
 	//ufs_nvm_unregister_sysfs(null_sd);
 	pr_info("LIGHTNVM_UFS: null_lnvm_exit() unregister_sysfs completed\n");
