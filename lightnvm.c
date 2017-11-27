@@ -1177,13 +1177,13 @@ static int __init null_lnvm_init(void)
 			return -ENOMEM;
 		}
 
-		/*
+		
 		blk_queue_make_request(rq, nullnvm_queue_bio);
 		BUG_ON(!rq);
 		rq->nr_queues = 1;
 		rq->queue_depth = 16;
-		*/
 		
+		/*
 		pr_info("LIGHTNVM_UFS: null_lnvm_init() init tag_set\n");
 		tag_set.ops = &nullnvm_mq_ops;
 		tag_set.nr_hw_queues = 1;
@@ -1197,7 +1197,7 @@ static int __init null_lnvm_init(void)
 		blk_mq_alloc_tag_set(&tag_set);
 		pr_info("LIGHTNVM_UFS: null_lnvm_init() do blk_mq_init_queue()\n");
 		rq = blk_mq_init_queue(&tag_set);
-		
+		*/
 		rq->queuedata = sdev;
 		
 		pr_info("LIGHTNVM_UFS: null_lnvm_init() do queue_flag_set_unlocked()\n");
