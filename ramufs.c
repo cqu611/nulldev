@@ -71,7 +71,7 @@ struct ramufs {
 	struct gendisk *gd;
 	struct kobject *kobj;
 	
-	struct configfs_subsystem ramufs_subsys;
+	struct configfs_subsystem *ramufs_subsys;
 };
 //#define kobj_to_ramufs(x) container_of(x, struct ramufs, kobj)
 
@@ -162,24 +162,29 @@ static struct configfs_subsystem ramufs_subsys = {
 static int __init ramufs_init(void)
 {
 	int ret = 0;
-	struct kobject *kobj;
 
+	pr_info("RAMUFS: ramufs init\n");
 	ufs = kzalloc(sizeof(struct ramufs), GFP_KERNEL);
 	if (!ufs) {
-
+		pr_err("RAMUFS: kzalloc failed, out of memory\n");
+		ret = -ENOMEM;
+		goto out;
 	}
 
-	ufs->kobj = kobject_create_and_add("ram-ufs", kernel_kobj);
+	ufs->kobj = kobject_create_and_add("ramufs", kernel_kobj);
 	if (!(ufs->kobj)) {
-		
+		pr_err("RAMUFS: kobject_create_and_add failed, out of memory\n");
+		ret = -ENOMEM;
+		goto free_ufs;
 	}
 	ret = sysfs_create_group(ufs->kobj, &attr_group);
 	if (ret) {
-		
+		pr_err("RAMUFS: sysfs_create_group failed\n");
 		kobject_put(ufs->kobj);
+		goto free_ufs;
 	}
 
-	pr_info("RAMUFS: ramufs init\n");
+
 	config_group_init(&ramufs_subsys.su_group);
 	mutex_init(&ramufs_subsys.su_mutex);
 	ret = configfs_register_subsystem(&ramufs_subsys);
@@ -189,14 +194,17 @@ static int __init ramufs_init(void)
 	}
 
 	pr_info("RAMUFS: ramufs loaded\n");
+	return ret;
 
+free_ufs:
+	kfree(ufs);
 out:
 	return ret;
 }
 
 static void __exit ramufs_exit(void)
 {
-	pr_err("RAMUFS: ramufs exit\n");
+	pr_info("RAMUFS: ramufs exit\n");
 	kobject_put(ufs->kobj);
 	configfs_unregister_subsystem(&ramufs_subsys);
 }
