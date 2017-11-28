@@ -69,6 +69,9 @@ static ssize_t foo_store(struct kobject *kobj, struct kobj_attribute *attr,
 	if (ret < 0)
 		return ret;
 
+	pr_info("RESTART: RAMUFS");
+	
+
 	return count;
 }
 
@@ -86,16 +89,7 @@ static struct attribute_group attr_group = {
 
 
 
-/*
-static struct config_item *ramufs_group_make_item(struct config_group *group, const char *name)
-{
-	return (struct config_item*)NULL;
-}
 
-static void ramufs_group_drop_item(struct config_group *group, struct config_item *item)
-{
-}
-*/
 static ssize_t ramufs_group_features_show(struct config_item *item, char *page)
 {
 	return snprintf(page, PAGE_SIZE, "memory_backed,discard,bandwidth,cache,badblocks\n");
@@ -108,13 +102,7 @@ static struct configfs_attribute *ramufs_group_attrs[] = {
 	NULL,
 };
 
-static struct configfs_group_operations ramufs_group_ops = {
-	.make_item	= ramufs_group_make_item,
-	.drop_item	= ramufs_group_drop_item,
-};
-
 static struct config_item_type ramufs_group_type = {
-	.ct_group_ops	= &ramufs_group_ops,
 	.ct_attrs	= ramufs_group_attrs,
 	.ct_owner	= THIS_MODULE,
 };
