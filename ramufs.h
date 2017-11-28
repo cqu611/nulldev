@@ -10,7 +10,6 @@
 #include <linux/slab.h>
 #include <linux/init.h>
 
-
 struct ufs_ppa_format {
 	u8	ch_off;
 	u8	ch_len;
@@ -78,6 +77,5 @@ struct ramufs {
 	struct configfs_subsystem *ramufs_subsys;
 };
 //#define kobj_to_ramufs(x) container_of(x, struct ramufs, kobj)
-
 
 #endif /* RAM_UFS_H */
