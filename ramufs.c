@@ -14,142 +14,64 @@ struct ramufs {
 	struct configfs_subsystem ramufs_subsys;
 	int wtf;
 };
-
 #define kobj_to_ramufs(x) container_of(x, struct ramufs, kobj)
 
-struct wtf_attribute {
-	struct attribute attr;
-	ssize_t (*show)(struct ramufs *ru, struct wtf_attribute *attr, char *buf);
-	ssize_t (*store)(struct ramufs *ru, struct wtf_attribute *attr, const char *buf, size_t cnt);
-};
 
-#define attr_to_wtf(x) container_of(x, struct wtf_attribute, attr)
+static int foo;
 
-static ssize_t wtf_attr_show(struct kobject *kobj,
-				struct attribute *attr, char *buf) 
+static ssize_t foo_show(struct kobject *kobj, struct kobj_attribute *attr,
+			char *buf)
 {
-	struct wtf_attribute *attribute;
-	struct ramufs *ru;
-
-	attribute = attr_to_wtf(attr);
-	ru = kobj_to_ramufs(kobj);
-
-	if (!attribute->show)
-		return -EIO;
-
-	return attribute->show(ru, attribute, buf);
+	return sprintf(buf, "%d\n", foo);
 }
 
-static ssize_t wtf_attr_store(struct kobject *kobj,
-				struct attribute *attr,
-				const char *buf, size_t len)
-{
-	struct wtf_attribute *attribute;
-	struct ramufs *ru;
-
-	attribute = attr_to_wtf(attr);
-	ru = kobj_to_ramufs(kobj);
-
-	if (!attribute->store)
-		return -EIO;
-
-	return attribute->store(ru, attribute, buf, len);
-}
-
-static const struct sysfs_ops wtf_sysfs_ops = {
-	.show = wtf_attr_show,
-	.store = wtf_attr_store,
-};
-
-static void wtf_release(struct kobject *kobj)
-{
-	struct ramufs *ru;
-
-	ru = kobj_to_ramufs(kobj);
-	kfree(ru);
-}
-
-static ssize_t wtf_show(struct ramufs *ru, struct wtf_attribute *attr，
-				char *buf)
-{
-	return sprintf(buf, "%d\n", ru->wtf);
-}
-
-static ssize_t wtf_store(struct ramufs *ru, struct attribute *attr,
-				const char *buf, size_t cnt)
+static ssize_t foo_store(struct kobject *kobj, struct kobj_attribute *attr,
+			 const char *buf, size_t count)
 {
 	int ret;
 
-	ret = kstrtoint(buf, 10, &ru->wtf);
+	ret = kstrtoint(buf, 10, &foo);
 	if (ret < 0)
 		return ret;
-	return cnt;
+
+	return count;
 }
 
-static struct wtf_attribute wtf_attribute = 
-	__ATTR(wtf, 0664, wtf_show, wtf_store);
+static struct kobj_attribute foo_attribute =
+	__ATTR(foo, 0664, foo_show, foo_store);
 
-static struct attribute *wtf_default_attrs[] = {
-	&wtf_attribute.attr,
-	NULL,
+static struct attribute *attrs[] = {
+	&foo_attribute.attr,
+	NULL,	
 };
 
-static struct kobj_type wtf_ktype = {
-	.sysfs_ops = &wtf_sysfs_ops,
-	.release = wtf_release,
-	.default_attrs = wtf_default_attrs,
+static struct attribute_group attr_group = {
+	.attrs = attrs,
 };
 
-static struct kset *ramufs_kset;
-static struct ramufs *ru;
-
-static struct ramufs *create_wtf_obj(const char* name)
-{
-	struct ramufs *ru;
-	int retval;
-	
-	ru = kzalloc(sizeof(*ru), GFP_KERNEL);
-	if (!ru) 
-		return NULL;
-
-	ru->kobj.kset = ramufs_kset;
-	retval = kobject_init_and_add(&ru->kobj, &wtf_ktype, NULL, "%s", name);
-	if (retval) {
-		kobject_put(&ru->kobj);
-		return NULL;
-	}
-	kobject_uevent(&ru->kobj, KOBJ_ADD);
-	
-	return ru;
-}
-
-static void destroy_ramufs_obj(struct ramufs *ru)
-{
-	kobject_put(&ru->kobj);
-}
+static struct kobject *example_kobj;
 
 static int __init ramufs_init(void)
 {
-	ramufs_kset = kset_create_and_add("ramufs_kset", NULL, kernel_kobj);
-	if (!ramufs_kset)
+	int retval;
+
+	example_kobj = kobject_create_and_add("kobject_example", kernel_kobj);
+	if (!example_kobj)
 		return -ENOMEM;
 
-	foo_obj = create_wtf_obj("wtf");
-	if (!foo_obj)
-		goto foo_error;
+	retval = sysfs_create_group(example_kobj, &attr_group);
+	if (retval)
+		kobject_put(example_kobj);
 
-	return 0;
-
-foo_error:
-	kset_unregister(ramufs_kset);
-	return -EINVAL;
+	return retval;
 }
 
 static void __exit ramufs_exit(void)
 {
-	destroy_ramufs_obj(ru);
-	kset_unregister(ramufs_kset);
+	kobject_put(example_kobj);
 }
+
+
 
 /*
 static struct config_item *ramufs_group_make_item(struct config_group *group, const char *name)
