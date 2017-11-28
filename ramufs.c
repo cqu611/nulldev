@@ -54,13 +54,16 @@ struct ramufs *ufs;
 
 static int foo;
 
-static ssize_t foo_show(struct kobject *kobj, struct kobj_attribute *attr,
+static ssize_t ramufs_show(struct kobject *kobj, struct kobj_attribute *attr,
 			char *buf)
 {
+	if (strcmp(attr->name, "version") == 0) {
+		pr_info("RESTART: this is a version");
+	}
 	return sprintf(buf, "%d\n", foo);
 }
 
-static ssize_t foo_store(struct kobject *kobj, struct kobj_attribute *attr,
+static ssize_t ramufs_store(struct kobject *kobj, struct kobj_attribute *attr,
 			 const char *buf, size_t count)
 {
 	int ret;
@@ -75,45 +78,24 @@ static ssize_t foo_store(struct kobject *kobj, struct kobj_attribute *attr,
 	return count;
 }
 
-static struct kobj_attribute foo_attribute =
-	__ATTR(foo, 0664, foo_show, foo_store);
+/*
+#define RAMUFS_ATTR(_name)			\
+static struct kobj_attribute _name##_attribute =	\
+	__ATTR(_name, 0664, ramufs_show, ramufs_store)
+*/
+#define RAMUFS_ATTR(_name) static DEVICE_ATTR(_name, 0664, ramufs_show, ramufs_store)
 
-static struct attribute *attrs[] = {
-	&foo_attribute.attr,
+RAMUFS_ATTR(version);
+
+
+static struct attribute *ramufs_attrs[] = {
+	&dev_attr_version.attr,
 	NULL,	
 };
 
-static struct attribute_group attr_group = {
-	.attrs = attrs,
-};
-
-
-
-
-static ssize_t ramufs_group_features_show(struct config_item *item, char *page)
-{
-	return snprintf(page, PAGE_SIZE, "memory_backed,discard,bandwidth,cache,badblocks\n");
-}
-
-CONFIGFS_ATTR_RO(ramufs_group_, features);
-
-static struct configfs_attribute *ramufs_group_attrs[] = {
-	&ramufs_group_attr_features,
-	NULL,
-};
-
-static struct config_item_type ramufs_group_type = {
-	.ct_attrs	= ramufs_group_attrs,
-	.ct_owner	= THIS_MODULE,
-};
-
-static struct configfs_subsystem ramufs_subsys = {
-	.su_group = {
-		.cg_item = {
-			.ci_namebuf = "ramufs",
-			.ci_type = &ramufs_group_type,
-		},
-	},
+static struct attribute_group ramufs_attr_group = {
+	.name = "ramufs",
+	.attrs = ramufs_attrs,
 };
 
 static int __init ramufs_init(void)
@@ -141,15 +123,6 @@ static int __init ramufs_init(void)
 		goto free_ufs;
 	}
 
-
-	config_group_init(&ramufs_subsys.su_group);
-	mutex_init(&ramufs_subsys.su_mutex);
-	ret = configfs_register_subsystem(&ramufs_subsys);
-	if (ret) {
-		pr_err("RAMUFS: ramufs_init: configfs_register_subsystem() failed\n");
-		goto out;
-	}
-
 	pr_info("RAMUFS: ramufs loaded\n");
 	return ret;
 
@@ -163,7 +136,6 @@ static void __exit ramufs_exit(void)
 {
 	pr_info("RAMUFS: ramufs exit\n");
 	kobject_put(ufs->kobj);
-	configfs_unregister_subsystem(&ramufs_subsys);
 }
 
 module_init(ramufs_init);
