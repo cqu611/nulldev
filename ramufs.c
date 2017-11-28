@@ -69,7 +69,7 @@ static ssize_t ramufs_show(struct kobject *kobj, struct kobj_attribute *attr,
 	
 	if (strcmp(name, "ufs_geo") == 0) {
 		pr_info("RAMUFS: show geometry\n");
-		return 
+		return __show_ufs_geo(buf);
 	} else if (strcmp(name, "ppa_fmt") == 0) {
 		pr_info("RAMUFS: show ppa format\n");
 	} else if (strcmp(name, "cfg_grp") == 0) {
