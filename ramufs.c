@@ -84,15 +84,64 @@ static ssize_t ramufs_store(struct kobject *kobj, struct kobj_attribute *attr,
 static struct kobj_attribute ramufs_attr_##_name =	\
 	__ATTR(_name, 0664, ramufs_show, ramufs_store)
 
+/* geometry */
+RAMUFS_ATTR(ufs_geo);
+RAMUFS_ATTR(ppa_fmt);
+RAMUFS_ATTR(cfg_grp);
+RAMUFS_ATTR(l2p_tbl);
+
+
+/*
 RAMUFS_ATTR(version);
+RAMUFS_ATTR(vnvmt);
+RAMUFS_ATTR(cgrps);
+RAMUFS_ATTR(cap);
+RAMUFS_ATTR(dom);
+
+RAMUFS_ATTR(ch_off);
+RAMUFS_ATTR(ch_len);
+RAMUFS_ATTR(lun_off);
+RAMUFS_ATTR(lun_len);
+RAMUFS_ATTR(pln_off);
+RAMUFS_ATTR(pln_len);
+RAMUFS_ATTR(blk_off);
+RAMUFS_ATTR(blk_len);
+RAMUFS_ATTR(pg_off);
+RAMUFS_ATTR(pg_len);
+RAMUFS_ATTR(sect_off);
+RAMUFS_ATTR(sect_len);
+RAMUFS_ATTR(mtype);
+RAMUFS_ATTR(fmtype);
+RAMUFS_ATTR(num_ch);
+RAMUFS_ATTR(num_lun);
+RAMUFS_ATTR(num_pln);
+RAMUFS_ATTR(num_blk);
+RAMUFS_ATTR(num_pg);
+RAMUFS_ATTR(fpg_sz);
+RAMUFS_ATTR(csecs);
+RAMUFS_ATTR(sos);
+RAMUFS_ATTR(trdt);
+RAMUFS_ATTR(trdm);
+RAMUFS_ATTR(tprt);
+RAMUFS_ATTR(tprm);
+RAMUFS_ATTR(tbet);
+RAMUFS_ATTR(tbem);
+RAMUFS_ATTR(mpos);
+RAMUFS_ATTR(mccap);
+RAMUFS_ATTR(cpar);
+
+RAMUFS_ATTR(l2ptbl);
+*/
 
 static struct attribute *ramufs_attrs[] = {
-	&ramufs_attr_version.attr,
+	&ramufs_attr_ufs_geo.attr,
+	&ramufs_attr_ppa_fmt.attr,
+	&ramufs_attr_cfg_grp.attr,
+	&ramufs_attr_l2p_tbl.attr,
 	NULL,	
 };
 
 static struct attribute_group ramufs_attr_group = {
-//	.name = "ramufs",
 	.attrs = ramufs_attrs,
 };
 
