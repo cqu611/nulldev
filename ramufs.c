@@ -57,7 +57,7 @@ static int foo;
 static ssize_t ramufs_show(struct kobject *kobj, struct kobj_attribute *attr,
 			char *buf)
 {
-	char *name = attr.attr->name;
+	const char *name = attr->attr.name;
 	if (strcmp(name, "version") == 0) {
 		pr_info("RESTART: this is a version");
 	}
@@ -92,7 +92,7 @@ static struct attribute *ramufs_attrs[] = {
 };
 
 static struct attribute_group ramufs_attr_group = {
-	.name = "ramufs",
+//	.name = "ramufs",
 	.attrs = ramufs_attrs,
 };
 
