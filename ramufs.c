@@ -162,7 +162,7 @@ static struct configfs_subsystem ramufs_subsys = {
 static int __init ramufs_init(void)
 {
 	int ret = 0;
-	kobject *kobj;
+	struct kobject *kobj;
 
 	ufs = kzalloc(sizeof(struct ramufs), GFP_KERNEL);
 	if (!ufs) {
