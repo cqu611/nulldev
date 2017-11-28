@@ -57,7 +57,8 @@ static int foo;
 static ssize_t ramufs_show(struct kobject *kobj, struct kobj_attribute *attr,
 			char *buf)
 {
-	if (strcmp(attr->name, "version") == 0) {
+	char *name = attr.attr->name;
+	if (strcmp(name, "version") == 0) {
 		pr_info("RESTART: this is a version");
 	}
 	return sprintf(buf, "%d\n", foo);
@@ -78,18 +79,15 @@ static ssize_t ramufs_store(struct kobject *kobj, struct kobj_attribute *attr,
 	return count;
 }
 
-/*
+
 #define RAMUFS_ATTR(_name)			\
-static struct kobj_attribute _name##_attribute =	\
+static struct kobj_attribute ramufs_attr_##_name =	\
 	__ATTR(_name, 0664, ramufs_show, ramufs_store)
-*/
-#define RAMUFS_ATTR(_name) static DEVICE_ATTR(_name, 0664, ramufs_show, ramufs_store)
 
 RAMUFS_ATTR(version);
 
-
 static struct attribute *ramufs_attrs[] = {
-	&dev_attr_version.attr,
+	&ramufs_attr_version.attr,
 	NULL,	
 };
 
@@ -116,7 +114,7 @@ static int __init ramufs_init(void)
 		ret = -ENOMEM;
 		goto free_ufs;
 	}
-	ret = sysfs_create_group(ufs->kobj, &attr_group);
+	ret = sysfs_create_group(ufs->kobj, &ramufs_attr_group);
 	if (ret) {
 		pr_err("RAMUFS: sysfs_create_group failed\n");
 		kobject_put(ufs->kobj);
@@ -135,7 +133,9 @@ out:
 static void __exit ramufs_exit(void)
 {
 	pr_info("RAMUFS: ramufs exit\n");
+	sysfs_remove_group(ufs->kobj, &ramufs_attr_group);
 	kobject_put(ufs->kobj);
+	kfree(ufs);
 }
 
 module_init(ramufs_init);
