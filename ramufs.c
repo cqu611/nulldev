@@ -41,10 +41,10 @@ static struct ufs_geo geo = {
 		.mccap 		= 0,
 		.cpar 		= 0,
 		.l2ptbl = {
-			//.id[8],
+			/* .id[8], */
 			.mlc = {
 				.num_pairs = 0,
-				//.pairs[886],
+				/* .pairs[886], */
 			},
 		},
 	},
@@ -52,86 +52,67 @@ static struct ufs_geo geo = {
 
 struct ramufs *ufs;
 
-static int foo;
+static ssize_t __show_ufs_geo(char *buf)
+{
+	return sprintf(buf, "\
+		Version                         =%#x\n\
+		Vendor NVM opcode command set   =%#x\n\
+		Configuration groups            =%#x\n\
+		Capabilities                    =%#x\n", 
+		geo.version, geo.vnvmt, geo.cgrps, geo.cap, geo.dom);
+}
 
 static ssize_t ramufs_show(struct kobject *kobj, struct kobj_attribute *attr,
 			char *buf)
 {
 	const char *name = attr->attr.name;
-	if (strcmp(name, "version") == 0) {
-		pr_info("RESTART: this is a version");
+	
+	if (strcmp(name, "ufs_geo") == 0) {
+		pr_info("RAMUFS: show geometry\n");
+		return 
+	} else if (strcmp(name, "ppa_fmt") == 0) {
+		pr_info("RAMUFS: show ppa format\n");
+	} else if (strcmp(name, "cfg_grp") == 0) {
+		pr_info("RAMUFS: show configuration group\n");
+	} else if (strcmp(name, "l2p_tbl") == 0) {
+		pr_info("RAMUFS: show l2p table\n");
 	}
-	return sprintf(buf, "%d\n", foo);
+	return sprintf(buf, "Unhandled attr(%s) in `ramufs_show`\n", name);
 }
 
 static ssize_t ramufs_store(struct kobject *kobj, struct kobj_attribute *attr,
 			 const char *buf, size_t count)
 {
 	int ret;
-
+	const char *name = attr->attr.name;
+	
+	if (strcmp(name, "ufs_geo") == 0) {
+		pr_info("RAMUFS: set geometry\n");
+	} else if (strcmp(name, "ppa_fmt") == 0) {
+		pr_info("RAMUFS: set ppa format\n");
+	} else if (strcmp(name, "cfg_grp") == 0) {
+		pr_info("RAMUFS: set configuration group\n");
+	} else if (strcmp(name, "l2p_tbl") == 0) {
+		pr_info("RAMUFS: set l2p table\n");
+	}
+	return -EINVAL;
+/*
 	ret = kstrtoint(buf, 10, &foo);
 	if (ret < 0)
 		return ret;
 
-	pr_info("RESTART: RAMUFS");
-	
-
 	return count;
+*/
 }
-
 
 #define RAMUFS_ATTR(_name)			\
 static struct kobj_attribute ramufs_attr_##_name =	\
 	__ATTR(_name, 0664, ramufs_show, ramufs_store)
 
-/* geometry */
 RAMUFS_ATTR(ufs_geo);
 RAMUFS_ATTR(ppa_fmt);
 RAMUFS_ATTR(cfg_grp);
 RAMUFS_ATTR(l2p_tbl);
-
-
-/*
-RAMUFS_ATTR(version);
-RAMUFS_ATTR(vnvmt);
-RAMUFS_ATTR(cgrps);
-RAMUFS_ATTR(cap);
-RAMUFS_ATTR(dom);
-
-RAMUFS_ATTR(ch_off);
-RAMUFS_ATTR(ch_len);
-RAMUFS_ATTR(lun_off);
-RAMUFS_ATTR(lun_len);
-RAMUFS_ATTR(pln_off);
-RAMUFS_ATTR(pln_len);
-RAMUFS_ATTR(blk_off);
-RAMUFS_ATTR(blk_len);
-RAMUFS_ATTR(pg_off);
-RAMUFS_ATTR(pg_len);
-RAMUFS_ATTR(sect_off);
-RAMUFS_ATTR(sect_len);
-RAMUFS_ATTR(mtype);
-RAMUFS_ATTR(fmtype);
-RAMUFS_ATTR(num_ch);
-RAMUFS_ATTR(num_lun);
-RAMUFS_ATTR(num_pln);
-RAMUFS_ATTR(num_blk);
-RAMUFS_ATTR(num_pg);
-RAMUFS_ATTR(fpg_sz);
-RAMUFS_ATTR(csecs);
-RAMUFS_ATTR(sos);
-RAMUFS_ATTR(trdt);
-RAMUFS_ATTR(trdm);
-RAMUFS_ATTR(tprt);
-RAMUFS_ATTR(tprm);
-RAMUFS_ATTR(tbet);
-RAMUFS_ATTR(tbem);
-RAMUFS_ATTR(mpos);
-RAMUFS_ATTR(mccap);
-RAMUFS_ATTR(cpar);
-
-RAMUFS_ATTR(l2ptbl);
-*/
 
 static struct attribute *ramufs_attrs[] = {
 	&ramufs_attr_ufs_geo.attr,
