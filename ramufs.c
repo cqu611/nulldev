@@ -1,45 +1,45 @@
 #include "ramufs.h"
 
 static struct ufs_geo geo = {
-	.version = 0,
-	.vnvmt = 0,
-	.cgrps = 1,
-	.cap = 0,
-	.dom = 0,
+	.version 		= 0,
+	.vnvmt 			= 0,
+	.cgrps 			= 1,
+	.cap 			= 0,
+	.dom 			= 0,
 	.ppaf = {
-		.ch_off = 0,
-		.ch_len = 0,
-		.lun_off = 0,
-		.lun_len = 0,
-		.pln_off = 0,
-		.pln_len = 0,
-		.blk_off = 0,
-		.blk_len = 0,
-		.pg_off = 0,
-		.pg_len = 0,
-		.sect_off = 0,
-		.sect_len = 0,
+		.ch_off 	= 0,
+		.ch_len 	= 0,
+		.lun_off 	= 0,
+		.lun_len 	= 0,
+		.pln_off 	= 0,
+		.pln_len 	= 0,
+		.blk_off 	= 0,
+		.blk_len 	= 0,
+		.pg_off 	= 0,
+		.pg_len 	= 0,
+		.sect_off 	= 0,
+		.sect_len 	= 0,
 	},
 	.ggrp = {
-		.mtype = 0,
-		.fmtype = 0,
-		.num_ch = 0,
-		.num_lun = 0,
-		.num_pln = 0,
-		.num_blk = 0,
-		.num_pg = 0,
-		.fpg_sz = 0,
-		.csecs = 0,
-		.sos = 0,
-		.trdt = 0,
-		.trdm = 0,
-		.tprt = 0,
-		.tprm = 0,
-		.tbet = 0,
-		.tbem = 0,
-		.mpos = 0,
-		.mccap = 0,
-		.cpar = 0,
+		.mtype 		= 0,
+		.fmtype 	= 0,
+		.num_ch 	= 0,
+		.num_lun 	= 0,
+		.num_pln 	= 0,
+		.num_blk 	= 0,
+		.num_pg 	= 0,
+		.fpg_sz 	= 0,
+		.csecs 		= 0,
+		.sos 		= 0,
+		.trdt 		= 0,
+		.trdm 		= 0,
+		.tprt 		= 0,
+		.tprm 		= 0,
+		.tbet 		= 0,
+		.tbem 		= 0,
+		.mpos 		= 0,
+		.mccap 		= 0,
+		.cpar 		= 0,
 		.l2ptbl = {
 			//.id[8],
 			.mlc = {
@@ -86,7 +86,7 @@ static struct attribute_group attr_group = {
 
 
 
-
+/*
 static struct config_item *ramufs_group_make_item(struct config_group *group, const char *name)
 {
 	return (struct config_item*)NULL;
@@ -95,7 +95,7 @@ static struct config_item *ramufs_group_make_item(struct config_group *group, co
 static void ramufs_group_drop_item(struct config_group *group, struct config_item *item)
 {
 }
-
+*/
 static ssize_t ramufs_group_features_show(struct config_item *item, char *page)
 {
 	return snprintf(page, PAGE_SIZE, "memory_backed,discard,bandwidth,cache,badblocks\n");
