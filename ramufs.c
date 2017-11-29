@@ -55,12 +55,35 @@ struct ramufs *ufs;
 static ssize_t __show_ufs_geo(char *buf)
 {
 	return sprintf(buf, "\
-		Version                         =%#x\n\
-		Vendor NVM opcode command set   =%#x\n\
-		Configuration groups            =%#x\n\
-		Capabilities                    =%#x\n", 
-		geo.version, geo.vnvmt, geo.cgrps, geo.cap, geo.dom);
+	Version                         =%#x\n\
+	Vendor NVM opcode command set   =%#x\n\
+	Configuration groups            =%#x\n\
+	Capabilities                    =%#x\n\
+	Device Op Mode                  =%#x\n", 
+	geo.version, geo.vnvmt, geo.cgrps, geo.cap, geo.dom);
 }
+
+static ssize_t __show_ppa_fmt(char *buf)
+{
+	return sprintf(buf, "\
+	Channel bit start       =%#x\n\
+	Channel bit length      =%#x\n\
+	LUN bit start           =%#x\n\
+	LUN bit length          =%#x\n\
+	Plane bit start         =%#x\n\
+	Plane bit length        =%#x\n\
+	Block bit start         =%#x\n\
+	Block bit length        =%#x\n\
+	Page bit start          =%#x\n\
+	Page bit length         =%#x\n\
+	Sector bit start        =%#x\n\
+	Sector bit length       =%#x\n",
+	geo.ppaf.ch_off, geo.ppaf.ch_len, geo.ppaf.lun_off,
+	geo.ppaf.lun_len, geo.ppaf.pln_off, geo.ppaf.pln_len,
+	geo.ppaf.blk_off, geo.ppaf.blk_len, geo.ppaf.pg_off, 
+	geo.ppaf.pg_len, geo.ppaf.sect_off, geo.ppaf.sect_len);
+}
+
 
 static ssize_t ramufs_show(struct kobject *kobj, struct kobj_attribute *attr,
 			char *buf)
@@ -72,6 +95,7 @@ static ssize_t ramufs_show(struct kobject *kobj, struct kobj_attribute *attr,
 		return __show_ufs_geo(buf);
 	} else if (strcmp(name, "ppa_fmt") == 0) {
 		pr_info("RAMUFS: show ppa format\n");
+		return __show_ppa_fmt(buf);
 	} else if (strcmp(name, "cfg_grp") == 0) {
 		pr_info("RAMUFS: show configuration group\n");
 	} else if (strcmp(name, "l2p_tbl") == 0) {
