@@ -56,8 +56,8 @@ static ssize_t __show_ufs_geo(char *buf)
 {
 	return sprintf(buf, "\
 	Version                         =%#x\n\
-	Vendor NVM opcode command set   =%#x\n\
-	Configuration groups            =%#x\n\
+	Vendor NVM Opcode Command Set   =%#x\n\
+	Configuration Groups            =%#x\n\
 	Capabilities                    =%#x\n\
 	Device Op Mode                  =%#x\n", 
 	geo.version, geo.vnvmt, geo.cgrps, geo.cap, geo.dom);
@@ -84,6 +84,48 @@ static ssize_t __show_ppa_fmt(char *buf)
 	geo.ppaf.pg_len, geo.ppaf.sect_off, geo.ppaf.sect_len);
 }
 
+static ssize_t __show_cfg_grp(char *buf)
+{
+	return sprintf(buf, "\
+	Media Type                          =%#x\n\
+	Flash Media Type                    =%#x\n\
+	Number of Channels                  =%#x\n\
+	Number of LUNs                      =%#x\n\
+	Number of Planes                    =%#x\n\
+	Number of Blocks                    =%#x\n\
+	Number of Pages                     =%#x\n\
+	Page Size                           =%#x\n\
+	Controller Sector Size              =%#x\n\
+	Sector OOB Size                     =%#x\n\
+	tRD Typical                         =%#x\n\
+	tRD Max                             =%#x\n\
+	tPROG Typical                       =%#x\n\
+	tPROG Max                           =%#x\n\
+	tBERS Typical                       =%#x\n\
+	tBERS Max                           =%#x\n\
+	Multi-plane Operation Support       =%#x\n\
+	Media and Controller Capabilities   =%#x\n\
+	Channel Parallelism                 =%#x\n",
+	geo.ggrp.mtype, geo.ggrp.fmtype, geo.ggrp.num_ch,
+	geo.ggrp.num_lun, geo.ggrp.num_pln, geo.ggrp.num_blk,
+	geo.ggrp.num_pg, geo.ggrp.fpg_sz, geo.ggrp.csecs,
+	geo.ggrp.sos, geo.ggrp.trdt, geo.ggrp.trdm, geo.ggrp.tprt, 
+	geo.ggrp.tprm, geo.ggrp.tbet, geo.ggrp.tbem, geo.ggrp.mpos, 
+	geo.ggrp.mccap, geo.ggrp.cpar);
+}
+
+static ssize_t __show_l2p_tbl(char *buf)
+{
+	return snprintf(buf, sizeof(struct ufs_geo_l2p_tbl), "%s\n", geo.ggrp.l2ptbl);
+}
+
+	/* .l2ptbl = {
+			.id[8], 
+			.mlc = {
+				.num_pairs = 0,
+				.pairs[886],
+			},
+		}, */
 
 static ssize_t ramufs_show(struct kobject *kobj, struct kobj_attribute *attr,
 			char *buf)
@@ -98,8 +140,10 @@ static ssize_t ramufs_show(struct kobject *kobj, struct kobj_attribute *attr,
 		return __show_ppa_fmt(buf);
 	} else if (strcmp(name, "cfg_grp") == 0) {
 		pr_info("RAMUFS: show configuration group\n");
+		return __show_cfg_grp(buf);
 	} else if (strcmp(name, "l2p_tbl") == 0) {
 		pr_info("RAMUFS: show l2p table\n");
+		return __show_l2p_tbl(buf);
 	}
 	return sprintf(buf, "Unhandled attr(%s) in `ramufs_show`\n", name);
 }
