@@ -115,7 +115,7 @@ static int __parse_config_ppa_fmt(const char *buf, size_t count)
 	}
 
 	memcpy(tmpbuf, buf, count);
-	memcpy(tmpgeo, geo, sizeof(struct ufs_geo));
+	memcpy(&tmpgeo, &geo, sizeof(struct ufs_geo));
 	for (i=0; i < count; i++)
 		if (tmpbuf[i] == '\t' || tmpbuf[i] == '\r' || tmpbuf[i] == '\n')
 			tmpbuf[i] = 0x20;
@@ -141,7 +141,7 @@ static int __parse_config_cfg_grp(const char *buf, size_t count)
 	}
 
 	memcpy(tmpbuf, buf, count);
-	memcpy(tmpgeo, geo, sizeof(struct ufs_geo));
+	memcpy(&tmpgeo, &geo, sizeof(struct ufs_geo));
 	for (i=0; i < count; i++)
 		if (tmpbuf[i] == '\t' || tmpbuf[i] == '\r' || tmpbuf[i] == '\n')
 			tmpbuf[i] = 0x20;
@@ -167,7 +167,7 @@ static int __parse_config_l2p_tbl(const char *buf, size_t count)
 	}
 
 	memcpy(tmpbuf, buf, count);
-	memcpy(tmpgeo, geo, sizeof(struct ufs_geo));
+	memcpy(&tmpgeo, &geo, sizeof(struct ufs_geo));
 	for (i=0; i < count; i++)
 		if (tmpbuf[i] == '\t' || tmpbuf[i] == '\r' || tmpbuf[i] == '\n')
 			tmpbuf[i] = 0x20;

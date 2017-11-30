@@ -10,6 +10,20 @@
 #include <linux/slab.h>
 #include <linux/init.h>
 
+/* space or '=' */
+#define RU_PARSE_STATUS_SPACE	0
+#define RU_PARSE_STATUS_ERROR	1
+/* now is parsing key */
+#define RU_PARSE_STATUS_KEYING	2
+/* the key parsed just now */
+#define RU_PARSE_STATUS_KEYED	3
+#define RU_PARSE_STATUS_VALING	4
+#define RU_PARSE_STATUS_VALED	5
+/* out of range */
+#define RU_PARSE_STATUS_RANGED	6
+
+
+
 struct ufs_ppa_format {
 	u8	ch_off;
 	u8	ch_len;
@@ -73,8 +87,7 @@ struct ramufs {
 
 	struct gendisk *gd;
 	struct kobject *kobj;
-	
-	struct configfs_subsystem *ramufs_subsys;
+	struct device *dev;
 };
 //#define kobj_to_ramufs(x) container_of(x, struct ramufs, kobj)
 
