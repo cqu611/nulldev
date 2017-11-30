@@ -117,6 +117,7 @@ static ssize_t __show_cfg_grp(char *buf)
 static ssize_t __show_l2p_tbl(char *buf)
 {
 	char hex[2048];
+	memset(hex, 0, 2048);
 	bin2hex(hex, geo.ggrp.l2ptbl.mlc.pairs, 886);
 	int i = strlen(hex);
 	pr_err("Length of hex=%d\n", i);
