@@ -119,7 +119,6 @@ static ssize_t __show_l2p_tbl(char *buf)
 	char hex[2022];
 	char *src, *dst;
 	int i, j;
-
 	src = geo.ggrp.l2ptbl.mlc.pairs;
 	dst = hex;
 	
@@ -142,10 +141,6 @@ static ssize_t __show_l2p_tbl(char *buf)
 	dst = dst + 4;
 	*(dst++) = 0x0a;
 	*dst = 0;
-	pr_err("dst - hex = %d\n", dst - &hex[0]);
-	
-	//bin2hex(hex, geo.ggrp.l2ptbl.mlc.pairs, 886);
-	//hex[1772] = 0;
 
 	return sprintf(buf, "\
 	ID codes for READ ID command    =%#018llx\n\
@@ -154,13 +149,34 @@ static ssize_t __show_l2p_tbl(char *buf)
 	(u64)geo.ggrp.l2ptbl.id, geo.ggrp.l2ptbl.mlc.num_pairs, hex);
 }
 
-	/* .l2ptbl = {
-			.id[8], 
-			.mlc = {
-				.num_pairs = 0,
-				.pairs[886],
-			},
-		}, */
+static int __store_ufs_geo(const char *buf, size_t count) 
+{
+	int ret = 0;
+	//kstrtoint
+	return ret;
+}
+
+static int __store_ppa_fmt(const char *buf, size_t count) 
+{
+	int ret = 0;
+	return ret;
+}
+
+static int __store_cfg_grp(const char *buf, size_t count) 
+{
+	int ret = 0;
+	return ret;
+}
+
+static int __store_l2p_tbl(const char *buf, size_t count) 
+{
+	int ret = 0;
+	char *dst;
+	dst = geo.ggrp.l2ptbl.mlc.pairs;
+	
+	ret = hex2bin(dst, buf, size_t count);
+	return ret;
+}
 
 static ssize_t ramufs_show(struct kobject *kobj, struct kobj_attribute *attr,
 			char *buf)
@@ -191,21 +207,21 @@ static ssize_t ramufs_store(struct kobject *kobj, struct kobj_attribute *attr,
 	
 	if (strcmp(name, "ufs_geo") == 0) {
 		pr_info("RAMUFS: set geometry\n");
+		ret = __store_ufs_geo(buf, count);
 	} else if (strcmp(name, "ppa_fmt") == 0) {
 		pr_info("RAMUFS: set ppa format\n");
+		ret = __store_ppa_fmt(buf, count);
 	} else if (strcmp(name, "cfg_grp") == 0) {
 		pr_info("RAMUFS: set configuration group\n");
+		ret = __store_cfg_grp(buf, count);
 	} else if (strcmp(name, "l2p_tbl") == 0) {
 		pr_info("RAMUFS: set l2p table\n");
+		ret = __store_l2p_tbl(buf, count);
+	} else {
+		ret = -EINVAL;
 	}
-	return -EINVAL;
-/*
-	ret = kstrtoint(buf, 10, &foo);
-	if (ret < 0)
-		return ret;
-
-	return count;
-*/
+	
+	return ret < 0 ? ret : count;
 }
 
 #define RAMUFS_ATTR(_name)			\
