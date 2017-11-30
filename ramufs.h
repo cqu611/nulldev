@@ -22,6 +22,8 @@
 #define RU_PARSE_STATUS_VALED	5
 /* out of range */
 #define RU_PARSE_STATUS_RANGED	6
+/* match failed */
+#define RU_PARSE_STATUS_UNMATCH	7
 
 
 
