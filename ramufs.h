@@ -96,7 +96,7 @@ struct ramufs {
 
 
 
-static int __parse_config_ufs_geo_v_(const char * buf, size_t count);
+int __parse_config_ufs_geo_v_(const char * buf, size_t count);
 
 
 
