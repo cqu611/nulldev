@@ -37,6 +37,7 @@ static int __parse_config_parse_value(char *buf, int pos, void *val,
 	int i, j=0, flag=0, ret;
 	char tmpbuf[32], dst[8];
 
+	memset(dst, 0, 8)
 	for (i=0; pos + i < len; i++) {
 		if (buf[pos+i] == 0x20 || buf[pos+i] == 0) {
 			if (flag == 0) {
@@ -81,10 +82,10 @@ static void __test__(void)
 	char *a2 = "abcdefgh";
 	char *a3 = "abcdefgh";
 	char *a4 = "12asbt 4";
-	char *b1 = "12345678";
+	char *b1 = "12      ";
 	char *b2 = " 454  ad";
 	char *b3 = "  456ab ";
-	char *b4 = " 34eff  ";
+	char *b4 = " 34efg  ";
 	int status;
 	int val, valen;
 
@@ -116,6 +117,9 @@ int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 	void *val;							/* point to tmp_ver, tmp_vnvmt, .... */
 	int keylen=0, vallen=0, typelen=0;	/* key ,value and type length */
 	val = &tmp_ver;						/* set default value */
+
+	__test__();
+	return 0;
 
 	tmpbuf = kmalloc(count, GFP_KERNEL);
 	if (!tmpbuf) {
