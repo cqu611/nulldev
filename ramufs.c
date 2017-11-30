@@ -116,8 +116,9 @@ static int __parse_config_ufs_geo(const char *buf, size_t count)
 	char *tmpbuf;
 	u8 tmp_ver, tmp_vnvmt, tmp_cgrps;
 	u32 tmp_cap, tmp_dom;
-	void *val;
-	int keylen, vallen, typelen;	/* key ,value and type length */
+	void *val;							/* point to tmp_ver, tmp_vnvmt, .... */
+	int keylen=0, vallen=0, typelen=0;	/* key ,value and type length */
+	val = &tmp_ver;						/* set default value */
 
 	tmpbuf = kmalloc(count, GFP_KERNEL);
 	if (!tmpbuf) {
@@ -443,25 +444,25 @@ static ssize_t __show_l2p_tbl(char *buf)
 
 static inline int __store_ufs_geo(const char *buf, size_t count) 
 {
-	pr_info("RAMUFS: __parse_config_ufs_geo, buffer size= %lld\n", count);
+	pr_info("RAMUFS: __parse_config_ufs_geo, buffer size= %llu\n", count);
 	return __parse_config_ufs_geo(buf, count);
 }
 
 static inline int __store_ppa_fmt(const char *buf, size_t count) 
 {
-	pr_info("RAMUFS: __parse_config_ppa_fmt, buffer size= %lld\n", count);
+	pr_info("RAMUFS: __parse_config_ppa_fmt, buffer size= %llu\n", count);
 	return __parse_config_ppa_fmt(buf, count);
 }
 
 static inline int __store_cfg_grp(const char *buf, size_t count) 
 {
-	pr_info("RAMUFS: __parse_config_cfg_grp, buffer size= %lld\n", count);
+	pr_info("RAMUFS: __parse_config_cfg_grp, buffer size= %llu\n", count);
 	return __parse_config_cfg_grp(buf, count);
 }
 
 static inline int __store_l2p_tbl(const char *buf, size_t count) 
 {
-	pr_info("RAMUFS: __parse_config_l2p_tbl, buffer size= %lld\n", count);
+	pr_info("RAMUFS: __parse_config_l2p_tbl, buffer size= %llu\n", count);
 	return __parse_config_l2p_tbl(buf, count);
 }
 
