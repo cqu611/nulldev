@@ -55,11 +55,11 @@ struct ramufs *ufs;
 static ssize_t __show_ufs_geo(char *buf)
 {
 	return sprintf(buf, "\
-	Version                         =%#8x\n\
-	Vendor NVM Opcode Command Set   =%#8x\n\
-	Configuration Groups            =%#8x\n\
-	Capabilities                    =%#32x\n\
-	Device Op Mode                  =%#32x\n", 
+	Version                         =%#04x\n\
+	Vendor NVM Opcode Command Set   =%#04x\n\
+	Configuration Groups            =%#04x\n\
+	Capabilities                    =%#010x\n\
+	Device Op Mode                  =%#010x\n", 
 	geo.version, geo.vnvmt, geo.cgrps, geo.cap, geo.dom);
 }
 
