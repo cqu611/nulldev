@@ -52,20 +52,153 @@ static struct ufs_geo geo = {
 
 struct ramufs *ufs;
 
+static int __parse_config_parse_key(char *buf, char *val, int pos, int len)
+{
+	/* out of range */
+	if (strlen(val) + pos > len) 
+		return RU_PARSE_STATUS_RANGED;
+
+	return strcmp(&buf[pos], val) == 0 ? RU_PARSE_STATUS_KEYED : RU_PARSE_STATUS_ERROR;
+}
+
+static int __parse_config_parse_value()
+{
+	return 0;
+}
+
+static int __parse_config_ufs_geo(const char *buf, size_t count)
+{
+	int i, ret = 0, status;
+	char *tmpbuf;
+	u8 tmp_ver, tmp_vnvmt, tmp_cgrps;
+	u32 tmp_cap, tmp_dom;
+
+	tmpbuf = kmalloc(count, GFP_KERNEL);
+	if (!tmpbuf) {
+		pr_err("RAMUFS: kmalloc failed, out of memory\n");
+		ret = -ENOMEM;
+		goto out;
+	}
+
+	memcpy(tmpbuf, buf, count);
+	for (i=0; i < count; i++) {
+		tmpbuf[i] = tolower(tmpbuf[i]);
+		if (tmpbuf[i] == '\t' || tmpbuf[i] == '\r' || tmpbuf[i] == '\n')
+			tmpbuf[i] = 0x20;
+	}
+
+	/* begin to parse input string */
+	status = RU_PARSE_STATUS_SPACE;
+	for (i=0; i < count; i++) {
+		if (tmpbuf[i] == 'v')
+			status = __parse_config_parse_key(tmpbuf, "version", i, count);
+			pr_err("parse version status=%d\n", status);
+	}
+	
+	kfree(tmpbuf);
+
+out:
+	return ret;
+}
+
+static int __parse_config_ppa_fmt(const char *buf, size_t count)
+{
+	int i, ret = 0;
+	char *tmpbuf;
+	struct ufs_geo tmpgeo;
+
+	tmpbuf = kmalloc(count, GFP_KERNEL);
+	if (!tmpbuf) {
+		pr_err("RAMUFS: kmalloc failed, out of memory\n");
+		ret = -ENOMEM;
+		goto out;
+	}
+
+	memcpy(tmpbuf, buf, count);
+	memcpy(tmpgeo, geo, sizeof(struct ufs_geo));
+	for (i=0; i < count; i++)
+		if (tmpbuf[i] == '\t' || tmpbuf[i] == '\r' || tmpbuf[i] == '\n')
+			tmpbuf[i] = 0x20;
+	
+	
+	kfree(tmpbuf);
+
+out:
+	return ret;
+}
+
+static int __parse_config_cfg_grp(const char *buf, size_t count)
+{
+	int i, ret = 0;
+	char *tmpbuf;
+	struct ufs_geo tmpgeo;
+
+	tmpbuf = kmalloc(count, GFP_KERNEL);
+	if (!tmpbuf) {
+		pr_err("RAMUFS: kmalloc failed, out of memory\n");
+		ret = -ENOMEM;
+		goto out;
+	}
+
+	memcpy(tmpbuf, buf, count);
+	memcpy(tmpgeo, geo, sizeof(struct ufs_geo));
+	for (i=0; i < count; i++)
+		if (tmpbuf[i] == '\t' || tmpbuf[i] == '\r' || tmpbuf[i] == '\n')
+			tmpbuf[i] = 0x20;
+	
+	
+	kfree(tmpbuf);
+
+out:
+	return ret;
+}
+
+static int __parse_config_l2p_tbl(const char *buf, size_t count)
+{
+	int i, ret = 0;
+	char *tmpbuf;
+	struct ufs_geo tmpgeo;
+
+	tmpbuf = kmalloc(count, GFP_KERNEL);
+	if (!tmpbuf) {
+		pr_err("RAMUFS: kmalloc failed, out of memory\n");
+		ret = -ENOMEM;
+		goto out;
+	}
+
+	memcpy(tmpbuf, buf, count);
+	memcpy(tmpgeo, geo, sizeof(struct ufs_geo));
+	for (i=0; i < count; i++)
+		if (tmpbuf[i] == '\t' || tmpbuf[i] == '\r' || tmpbuf[i] == '\n')
+			tmpbuf[i] = 0x20;
+	
+	
+	kfree(tmpbuf);
+
+out:
+	return ret;
+}
+
 static ssize_t __show_ufs_geo(char *buf)
 {
-	return sprintf(buf, "\
+	int ret = 0;
+	
+	ret = sprintf(buf, "\
 	Version                         =%#04x\n\
 	Vendor NVM Opcode Command Set   =%#04x\n\
 	Configuration Groups            =%#04x\n\
 	Capabilities                    =%#010x\n\
 	Device Op Mode                  =%#010x\n", 
 	geo.version, geo.vnvmt, geo.cgrps, geo.cap, geo.dom);
+
+	return ret;
 }
 
 static ssize_t __show_ppa_fmt(char *buf)
 {
-	return sprintf(buf, "\
+	int ret = 0;
+	
+	ret = sprintf(buf, "\
 	Channel bit start       =%#04x\n\
 	Channel bit length      =%#04x\n\
 	LUN bit start           =%#04x\n\
@@ -82,11 +215,15 @@ static ssize_t __show_ppa_fmt(char *buf)
 	geo.ppaf.lun_len, geo.ppaf.pln_off, geo.ppaf.pln_len,
 	geo.ppaf.blk_off, geo.ppaf.blk_len, geo.ppaf.pg_off, 
 	geo.ppaf.pg_len, geo.ppaf.sect_off, geo.ppaf.sect_len);
+
+	return ret;
 }
 
 static ssize_t __show_cfg_grp(char *buf)
 {
-	return sprintf(buf, "\
+	int ret = 0;
+	
+	ret = sprintf(buf, "\
 	Media Type                          =%#04x\n\
 	Flash Media Type                    =%#04x\n\
 	Number of Channels                  =%#04x\n\
@@ -112,13 +249,15 @@ static ssize_t __show_cfg_grp(char *buf)
 	geo.ggrp.sos, geo.ggrp.trdt, geo.ggrp.trdm, geo.ggrp.tprt, 
 	geo.ggrp.tprm, geo.ggrp.tbet, geo.ggrp.tbem, geo.ggrp.mpos, 
 	geo.ggrp.mccap, geo.ggrp.cpar);
+
+	return ret;
 }
 
 static ssize_t __show_l2p_tbl(char *buf)
 {
 	char hex[2022];
 	char *src, *dst;
-	int i, j;
+	int i, j, ret=0;
 	src = geo.ggrp.l2ptbl.mlc.pairs;
 	dst = hex;
 	
@@ -142,42 +281,37 @@ static ssize_t __show_l2p_tbl(char *buf)
 	*(dst++) = 0x0a;
 	*dst = 0;
 
-	return sprintf(buf, "\
+	ret = sprintf(buf, "\
 	ID codes for READ ID command    =%#018llx\n\
 	Number of Pairs                 =%06x\n\
 	Pairs Values in Hexadecimal:\n%s\n", 
 	(u64)geo.ggrp.l2ptbl.id, geo.ggrp.l2ptbl.mlc.num_pairs, hex);
-}
 
-static int __store_ufs_geo(const char *buf, size_t count) 
-{
-	int ret = 0;
-	//kstrtoint
 	return ret;
 }
 
-static int __store_ppa_fmt(const char *buf, size_t count) 
+static inline int __store_ufs_geo(const char *buf, size_t count) 
 {
-	int ret = 0;
-	return ret;
+	pr_info("RAMUFS: __parse_config_ufs_geo, buffer size= %lld\n", count);
+	return __parse_config_ufs_geo(buf, count);
 }
 
-static int __store_cfg_grp(const char *buf, size_t count) 
+static inline int __store_ppa_fmt(const char *buf, size_t count) 
 {
-	int ret = 0;
-	return ret;
+	pr_info("RAMUFS: __parse_config_ppa_fmt, buffer size= %lld\n", count);
+	return __parse_config_ppa_fmt(buf, count);
 }
 
-static int __store_l2p_tbl(const char *buf, size_t count) 
+static inline int __store_cfg_grp(const char *buf, size_t count) 
 {
-	int ret = 0;
-	char *dst;
-	dst = geo.ggrp.l2ptbl.mlc.pairs;
-	
-	ret = hex2bin(dst, buf, count/2);
-	pr_err("count=%d\n", count);
-	pr_err("ret=%d\n",ret);
-	return ret;
+	pr_info("RAMUFS: __parse_config_cfg_grp, buffer size= %lld\n", count);
+	return __parse_config_cfg_grp(buf, count);
+}
+
+static inline int __store_l2p_tbl(const char *buf, size_t count) 
+{
+	pr_info("RAMUFS: __parse_config_l2p_tbl, buffer size= %lld\n", count);
+	return __parse_config_l2p_tbl(buf, count);
 }
 
 static ssize_t ramufs_show(struct kobject *kobj, struct kobj_attribute *attr,
