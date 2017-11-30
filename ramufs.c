@@ -116,14 +116,10 @@ static ssize_t __show_cfg_grp(char *buf)
 
 static ssize_t __show_l2p_tbl(char *buf)
 {
-	char *hex;
-	int i;
-
-	hex = kmalloc(2110, GFP_KERNEL);
-	hex[2109] = '\0';
-	for (i=0; i < 2109; i++) {
-		hex[i] = 'a';
-	}
+	char hex[2048];
+	bin2hex(hex, geo.ggrp.l2ptbl.mlc.pairs, 886);
+	int i = strlen(hex);
+	pr_err("Length of hex=%d\n", i);
 
 	return sprintf(buf, "\
 	ID codes for READ ID command    =%#018llx\n\
