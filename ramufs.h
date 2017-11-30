@@ -14,16 +14,12 @@
 /* space or '=' */
 #define RU_PARSE_STATUS_SPACE	0
 #define RU_PARSE_STATUS_ERROR	1
-/* now is parsing key */
-#define RU_PARSE_STATUS_KEYING	2
-/* the key parsed just now */
-#define RU_PARSE_STATUS_KEYED	3
-#define RU_PARSE_STATUS_VALING	4
-#define RU_PARSE_STATUS_VALED	5
-/* out of range */
-#define RU_PARSE_STATUS_RANGED	6
+#define RU_PARSE_STATUS_MATCHED	2
 /* match failed */
-#define RU_PARSE_STATUS_UNMATCH	7
+#define RU_PARSE_STATUS_UNMATCH	3
+/* out of range */
+#define RU_PARSE_STATUS_RANGED	4
+
 
 
 

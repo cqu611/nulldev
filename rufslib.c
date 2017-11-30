@@ -1,7 +1,12 @@
 #include "ramufs.h"
 
-
-
+/**
+ * matching configure keys
+ * buf: buffer input
+ * val: key (string type) to matched
+ * pos: current position in buf
+ * len: length of buf
+ */
 static int __parse_config_parse_key(char *buf, char *val, int pos, int len)
 {
 	char tmpbuf[16];
@@ -14,16 +19,25 @@ static int __parse_config_parse_key(char *buf, char *val, int pos, int len)
 	memcpy(tmpbuf, &buf[pos], valen);
 	tmpbuf[valen] = 0;
 
-	return strcmp(tmpbuf, val) == 0 ? RU_PARSE_STATUS_KEYED : RU_PARSE_STATUS_UNMATCH;
+	return strcmp(tmpbuf, val) == 0 ? RU_PARSE_STATUS_MATCHED : RU_PARSE_STATUS_UNMATCH;
 }
 
-static int __parse_config_parse_value(char *buf, int pos, void *value, 
-				int *vallen, int count, int typelen)
+/**
+ * parse value for a key
+ * buf: buffer input
+ * pos: current position in buf
+ * val: to save value
+ * off: offset in traversal, this used for calculate offset
+ * len: length of buf
+ * cnt: count of 'val' by bytes. e.g. u8(1), u16(2), u32(4), u64(8)
+ */
+static int __parse_config_parse_value(char *buf, int pos, void *val, 
+				int *off, int len, int cnt)
 {
 	int i, j=0, flag=0, ret;
 	char tmpbuf[32], dst[8];
 
-	for (i=0; pos + i < count; i++) {
+	for (i=0; pos + i < len; i++) {
 		if (buf[pos+i] == 0x20 || buf[pos+i] == 0) {
 			if (flag == 0) {
 				continue;
@@ -34,21 +48,21 @@ static int __parse_config_parse_value(char *buf, int pos, void *value,
 				ret = hex2bin(dst, tmpbuf, (j-1)/2);
 				if (ret)
 					return RU_PARSE_STATUS_ERROR;
-				if (typelen == 1)
-					*(u8*)value = (u8)dst[0];
-				else if (typelen == 2) 
-					*(u16*)value = ((u16)dst[0] << 8) + (u16)dst[1];
-				else if (typelen == 4)
-					*(u32*)value = ((u32)dst[0] << 24) + ((u32)dst[1] << 16)
+				if (cnt == 1)
+					*(u8*)val = (u8)dst[0];
+				else if (cnt == 2) 
+					*(u16*)val = ((u16)dst[0] << 8) + (u16)dst[1];
+				else if (cnt == 4)
+					*(u32*)val = ((u32)dst[0] << 24) + ((u32)dst[1] << 16)
 							+ ((u32)dst[2] << 8) + (u32)dst[3];
-				else if (typelen == 8)
-					*(u64*)value = ((u64)dst[0] << 56) + ((u64)dst[1] << 48)
+				else if (cnt == 8)
+					*(u64*)val = ((u64)dst[0] << 56) + ((u64)dst[1] << 48)
 							+ ((u64)dst[2] << 40) + ((u64)dst[3] << 32)
 							+ ((u64)dst[4] << 24) + ((u64)dst[5] << 16)
 							+ ((u64)dst[6] << 8) + (u64)dst[7];
 				else
 					return RU_PARSE_STATUS_ERROR;
-				*vallen = i;
+				*off = i;
 				return RU_PARSE_STATUS_SPACE;
 			}
 		} else {
@@ -60,11 +74,6 @@ static int __parse_config_parse_value(char *buf, int pos, void *value,
 	return RU_PARSE_STATUS_ERROR;
 }
 
-static int __parse_config_ufs_geo_v_(const char * buf, size_t count)
-{
-	pr_err("WTF\n");
-	return 0;
-}
 
 static void __test__(void)
 {
@@ -89,13 +98,13 @@ static void __test__(void)
 	pr_err("a4=%d\n", status);
 
 	status = __parse_config_parse_value(b1, 0, &val, &valen, 9, 1);
-	pr_err("b1=%d\n", status);
+	pr_err("b1=%d, value=%d, valen=%d\n", status, val, valen);
 	status = __parse_config_parse_value(b2, 1, &val, &valen, 9, 2);
-	pr_err("b2=%d\n", status);
+	pr_err("b2=%d, value=%d, valen=%d\n", status, val, valen);
 	status = __parse_config_parse_value(b3, 2, &val, &valen, 9, 4);
-	pr_err("b3=%d\n", status);
+	pr_err("b3=%d, value=%d, valen=%d\n", status, val, valen);
 	status = __parse_config_parse_value(b4, 1, &val, &valen, 9, 8);
-	pr_err("b4=%d\n", status);
+	pr_err("b4=%d, value=%d, valen=%d\n", status, val, valen);
 }
 
 int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
@@ -107,7 +116,7 @@ int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 	void *val;							/* point to tmp_ver, tmp_vnvmt, .... */
 	int keylen=0, vallen=0, typelen=0;	/* key ,value and type length */
 	val = &tmp_ver;						/* set default value */
-	
+
 	tmpbuf = kmalloc(count, GFP_KERNEL);
 	if (!tmpbuf) {
 		pr_err("RAMUFS: kmalloc failed, out of memory\n");
@@ -145,7 +154,7 @@ int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 			if (status == RU_PARSE_STATUS_RANGED || status == RU_PARSE_STATUS_UNMATCH) {
 				ret = -EINVAL;
 				goto destroy_buf;
-			} else if (status == RU_PARSE_STATUS_KEYED) {
+			} else if (status == RU_PARSE_STATUS_MATCHED) {
 				i += keylen-1;
 				continue;
 			} else {
@@ -173,7 +182,7 @@ int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 			if (status == RU_PARSE_STATUS_RANGED || status == RU_PARSE_STATUS_UNMATCH) {
 				ret = -EINVAL;
 				goto destroy_buf;
-			} else if (status == RU_PARSE_STATUS_KEYED) {
+			} else if (status == RU_PARSE_STATUS_MATCHED) {
 				i += keylen-1;
 				continue;
 			} else {
@@ -195,7 +204,7 @@ int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 			if (status == RU_PARSE_STATUS_RANGED || status == RU_PARSE_STATUS_UNMATCH) {
 				ret = -EINVAL;
 				goto destroy_buf;
-			} else if (status == RU_PARSE_STATUS_KEYED) {
+			} else if (status == RU_PARSE_STATUS_MATCHED) {
 				i += keylen - 1;
 				continue;
 			} else {
@@ -206,7 +215,7 @@ int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 		} else if (tmpbuf[i] == '=') {
 
 			/* try to parse values */
-			if (status != RU_PARSE_STATUS_KEYED) {
+			if (status != RU_PARSE_STATUS_MATCHED) {
 				ret = -EINVAL;
 				goto destroy_buf;
 			}
