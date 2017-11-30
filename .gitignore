@@ -8,6 +8,7 @@ Module.symvers
 *.ko.cmd
 *.mod.o.cmd
 *.o.cmd
+*.o.d
 
 .tmp_versions
 
