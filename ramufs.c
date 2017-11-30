@@ -174,7 +174,9 @@ static int __store_l2p_tbl(const char *buf, size_t count)
 	char *dst;
 	dst = geo.ggrp.l2ptbl.mlc.pairs;
 	
-	ret = hex2bin(dst, buf, size_t count);
+	ret = hex2bin(dst, buf, count/2);
+	pr_err("count=%d\n", count);
+	pr_err("ret=%d\n",ret);
 	return ret;
 }
 
