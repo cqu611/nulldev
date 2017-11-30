@@ -94,4 +94,11 @@ struct ramufs {
 };
 //#define kobj_to_ramufs(x) container_of(x, struct ramufs, kobj)
 
+
+
+static int __parse_config_ufs_geo_v_(const char * buf, size_t count);
+
+
+
+
 #endif /* RAM_UFS_H */

@@ -119,6 +119,7 @@ static int __parse_config_ufs_geo(const char *buf, size_t count)
 	void *val;							/* point to tmp_ver, tmp_vnvmt, .... */
 	int keylen=0, vallen=0, typelen=0;	/* key ,value and type length */
 	val = &tmp_ver;						/* set default value */
+	__parse_config_ufs_geo_v_(buf,count);
 
 	tmpbuf = kmalloc(count, GFP_KERNEL);
 	if (!tmpbuf) {
