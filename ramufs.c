@@ -58,6 +58,8 @@ static int __parse_config_parse_key(char *buf, char *val, int pos, int len)
 	if (strlen(val) + pos > len) 
 		return RU_PARSE_STATUS_RANGED;
 
+	pr_err("buf=%s\nval=%s\n", &buf[pos], val);
+
 	return strcmp(&buf[pos], val) == 0 ? RU_PARSE_STATUS_KEYED : RU_PARSE_STATUS_ERROR;
 }
 
@@ -90,9 +92,10 @@ static int __parse_config_ufs_geo(const char *buf, size_t count)
 	/* begin to parse input string */
 	status = RU_PARSE_STATUS_SPACE;
 	for (i=0; i < count; i++) {
-		if (tmpbuf[i] == 'v')
+		if (tmpbuf[i] == 'v') {
 			status = __parse_config_parse_key(tmpbuf, "version", i, count);
 			pr_err("parse version status=%d\n", status);
+		}
 	}
 	
 	kfree(tmpbuf);
