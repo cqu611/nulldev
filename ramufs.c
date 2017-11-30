@@ -165,26 +165,54 @@ static ssize_t __show_l2p_tbl(char *buf)
 
 static inline int __store_ufs_geo(const char *buf, size_t count) 
 {
+	int ret;
+	struct ufs_geo tmpgeo;
+
 	pr_info("RAMUFS: __parse_config_ufs_geo, buffer size= %lu\n", count);
-	return __parse_config_ufs_geo(buf, count);
+	memcpy(&tmpgeo, &geo, sizeof(struct ufs_geo));
+	ret = __parse_config_ufs_geo(buf, count, &tmpgeo);
+	if (ret >= 0)
+		memcpy(&geo, &tmpgeo, sizeof(struct ufs_geo));
+	return ret;
 }
 
 static inline int __store_ppa_fmt(const char *buf, size_t count) 
 {
+	int ret;
+	struct ufs_geo tmpgeo;
+	
 	pr_info("RAMUFS: __parse_config_ppa_fmt, buffer size= %lu\n", count);
-	return __parse_config_ppa_fmt(buf, count);
+	memcpy(&tmpgeo, &geo, sizeof(struct ufs_geo));
+	ret = __parse_config_ppa_fmt(buf, count, &tmpgeo);
+	if (ret >= 0)
+		memcpy(&geo, &tmpgeo, sizeof(struct ufs_geo));
+	return ret;
 }
 
 static inline int __store_cfg_grp(const char *buf, size_t count) 
 {
+	int ret;
+	struct ufs_geo tmpgeo;
+	
 	pr_info("RAMUFS: __parse_config_cfg_grp, buffer size= %lu\n", count);
-	return __parse_config_cfg_grp(buf, count);
+	memcpy(&tmpgeo, &geo, sizeof(struct ufs_geo));
+	ret = __parse_config_cfg_grp(buf, count, &tmpgeo);
+	if (ret >= 0)
+		memcpy(&geo, &tmpgeo, sizeof(struct ufs_geo));
+	return ret;
 }
 
 static inline int __store_l2p_tbl(const char *buf, size_t count) 
 {
+	int ret;
+	struct ufs_geo tmpgeo;
+	
 	pr_info("RAMUFS: __parse_config_l2p_tbl, buffer size= %lu\n", count);
-	return __parse_config_l2p_tbl(buf, count);
+	memcpy(&tmpgeo, &geo, sizeof(struct ufs_geo));
+	ret = __parse_config_l2p_tbl(buf, count, &tmpgeo);
+	if (ret >= 0)
+		memcpy(&geo, &tmpgeo, sizeof(struct ufs_geo));
+	return ret;
 }
 
 static ssize_t ramufs_show(struct kobject *kobj, struct kobj_attribute *attr,

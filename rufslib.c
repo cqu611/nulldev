@@ -98,7 +98,7 @@ static void __test__(void)
 	pr_err("b4=%d\n", status);
 }
 
-int __parse_config_ufs_geo(const char *buf, size_t count)
+int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 {
 	int i, ret = 0, status;
 	char *tmpbuf;
@@ -241,12 +241,11 @@ out:
 	return ret;
 }
 
-int __parse_config_ppa_fmt(const char *buf, size_t count)
+int __parse_config_ppa_fmt(const char *buf, size_t count, struct ufs_geo *geo)
 {
 	int i, ret = 0;
 	char *tmpbuf;
-	struct ufs_geo tmpgeo;
-
+	
 	tmpbuf = kmalloc(count, GFP_KERNEL);
 	if (!tmpbuf) {
 		pr_err("RAMUFS: kmalloc failed, out of memory\n");
@@ -255,7 +254,7 @@ int __parse_config_ppa_fmt(const char *buf, size_t count)
 	}
 
 	memcpy(tmpbuf, buf, count);
-	memcpy(&tmpgeo, &geo, sizeof(struct ufs_geo));
+	
 	for (i=0; i < count; i++)
 		if (tmpbuf[i] == '\t' || tmpbuf[i] == '\r' || tmpbuf[i] == '\n')
 			tmpbuf[i] = 0x20;
@@ -267,11 +266,10 @@ out:
 	return ret;
 }
 
-int __parse_config_cfg_grp(const char *buf, size_t count)
+int __parse_config_cfg_grp(const char *buf, size_t count, struct ufs_geo *geo)
 {
 	int i, ret = 0;
 	char *tmpbuf;
-	struct ufs_geo tmpgeo;
 
 	tmpbuf = kmalloc(count, GFP_KERNEL);
 	if (!tmpbuf) {
@@ -281,7 +279,6 @@ int __parse_config_cfg_grp(const char *buf, size_t count)
 	}
 
 	memcpy(tmpbuf, buf, count);
-	memcpy(&tmpgeo, &geo, sizeof(struct ufs_geo));
 	for (i=0; i < count; i++)
 		if (tmpbuf[i] == '\t' || tmpbuf[i] == '\r' || tmpbuf[i] == '\n')
 			tmpbuf[i] = 0x20;
@@ -293,11 +290,10 @@ out:
 	return ret;
 }
 
-int __parse_config_l2p_tbl(const char *buf, size_t count)
+int __parse_config_l2p_tbl(const char *buf, size_t count, struct ufs_geo *geo)
 {
 	int i, ret = 0;
 	char *tmpbuf;
-	struct ufs_geo tmpgeo;
 
 	tmpbuf = kmalloc(count, GFP_KERNEL);
 	if (!tmpbuf) {
@@ -307,7 +303,6 @@ int __parse_config_l2p_tbl(const char *buf, size_t count)
 	}
 
 	memcpy(tmpbuf, buf, count);
-	memcpy(&tmpgeo, &geo, sizeof(struct ufs_geo));
 	for (i=0; i < count; i++)
 		if (tmpbuf[i] == '\t' || tmpbuf[i] == '\r' || tmpbuf[i] == '\n')
 			tmpbuf[i] = 0x20;
