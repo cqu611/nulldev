@@ -87,15 +87,15 @@ static int __parse_config_parse_value(char *buf, int pos, void *value,
 				if (typelen == 1)
 					*(u8*)value = (u8)dst[0];
 				else if (typelen == 2) 
-					*(u16*)value = (u16)dst[0] << 8 + (u16)dst[1];
+					*(u16*)value = ((u16)dst[0] << 8) + (u16)dst[1];
 				else if (typelen == 4)
-					*(u32*)value = (u32)dst[0] << 24 + (u32)dst[1] << 16
-							+ (u32)dst[2] << 8 + (u32)dst[3];
+					*(u32*)value = ((u32)dst[0] << 24) + ((u32)dst[1] << 16)
+							+ ((u32)dst[2] << 8) + (u32)dst[3];
 				else if (typelen == 8)
-					*(u64*)value = (u64)dst[0] << 56 + (u64)dst[1] << 48
-							+ (u64)dst[2] << 40 + (u64)dst[3] << 32
-							+ (u64)dst[4] << 24 + (u64)dst[5] << 16
-							+ (u64)dst[6] << 8 + (u64)dst[7];
+					*(u64*)value = ((u64)dst[0] << 56) + ((u64)dst[1] << 48)
+							+ ((u64)dst[2] << 40) + ((u64)dst[3] << 32)
+							+ ((u64)dst[4] << 24) + ((u64)dst[5] << 16)
+							+ ((u64)dst[6] << 8) + (u64)dst[7];
 				else
 					return RU_PARSE_STATUS_ERROR;
 				*vallen = i;
