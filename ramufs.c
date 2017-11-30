@@ -54,13 +54,18 @@ struct ramufs *ufs;
 
 static int __parse_config_parse_key(char *buf, char *val, int pos, int len)
 {
+	char tmpbuf[16];
+	int valen = strlen(val);
+	
 	/* out of range */
-	if (strlen(val) + pos > len) 
+	if (valen + pos > len || valen >= 16) 
 		return RU_PARSE_STATUS_RANGED;
 
-	pr_err("buf=%s\nval=%s\n", &buf[pos], val);
+	memcpy(tmpbuf, &buf[pos], valen);
+	tmpbuf[valen] = 0;
+//	pr_err("buf=%s\nval=%s\n", &buf[pos], val);
 
-	return strcmp(&buf[pos], val) == 0 ? RU_PARSE_STATUS_KEYED : RU_PARSE_STATUS_ERROR;
+	return strcmp(tmpbuf, val) == 0 ? RU_PARSE_STATUS_KEYED : RU_PARSE_STATUS_ERROR;
 }
 
 static int __parse_config_parse_value(void)
