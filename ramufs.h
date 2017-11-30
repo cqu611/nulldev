@@ -9,6 +9,7 @@
 #include <linux/sysfs.h>
 #include <linux/slab.h>
 #include <linux/init.h>
+#include <linux/ctype.h>
 
 /* space or '=' */
 #define RU_PARSE_STATUS_SPACE	0

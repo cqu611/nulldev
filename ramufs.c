@@ -61,7 +61,7 @@ static int __parse_config_parse_key(char *buf, char *val, int pos, int len)
 	return strcmp(&buf[pos], val) == 0 ? RU_PARSE_STATUS_KEYED : RU_PARSE_STATUS_ERROR;
 }
 
-static int __parse_config_parse_value()
+static int __parse_config_parse_value(void)
 {
 	return 0;
 }
