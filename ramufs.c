@@ -66,18 +66,18 @@ static ssize_t __show_ufs_geo(char *buf)
 static ssize_t __show_ppa_fmt(char *buf)
 {
 	return sprintf(buf, "\
-	Channel bit start       =%#x\n\
-	Channel bit length      =%#x\n\
-	LUN bit start           =%#x\n\
-	LUN bit length          =%#x\n\
-	Plane bit start         =%#x\n\
-	Plane bit length        =%#x\n\
-	Block bit start         =%#x\n\
-	Block bit length        =%#x\n\
-	Page bit start          =%#x\n\
-	Page bit length         =%#x\n\
-	Sector bit start        =%#x\n\
-	Sector bit length       =%#x\n",
+	Channel bit start       =%#04x\n\
+	Channel bit length      =%#04x\n\
+	LUN bit start           =%#04x\n\
+	LUN bit length          =%#04x\n\
+	Plane bit start         =%#04x\n\
+	Plane bit length        =%#04x\n\
+	Block bit start         =%#04x\n\
+	Block bit length        =%#04x\n\
+	Page bit start          =%#04x\n\
+	Page bit length         =%#04x\n\
+	Sector bit start        =%#04x\n\
+	Sector bit length       =%#04x\n",
 	geo.ppaf.ch_off, geo.ppaf.ch_len, geo.ppaf.lun_off,
 	geo.ppaf.lun_len, geo.ppaf.pln_off, geo.ppaf.pln_len,
 	geo.ppaf.blk_off, geo.ppaf.blk_len, geo.ppaf.pg_off, 
@@ -87,25 +87,25 @@ static ssize_t __show_ppa_fmt(char *buf)
 static ssize_t __show_cfg_grp(char *buf)
 {
 	return sprintf(buf, "\
-	Media Type                          =%#x\n\
-	Flash Media Type                    =%#x\n\
-	Number of Channels                  =%#x\n\
-	Number of LUNs                      =%#x\n\
-	Number of Planes                    =%#x\n\
-	Number of Blocks                    =%#x\n\
-	Number of Pages                     =%#x\n\
-	Page Size                           =%#x\n\
-	Controller Sector Size              =%#x\n\
-	Sector OOB Size                     =%#x\n\
-	tRD Typical                         =%#x\n\
-	tRD Max                             =%#x\n\
-	tPROG Typical                       =%#x\n\
-	tPROG Max                           =%#x\n\
-	tBERS Typical                       =%#x\n\
-	tBERS Max                           =%#x\n\
-	Multi-plane Operation Support       =%#x\n\
-	Media and Controller Capabilities   =%#x\n\
-	Channel Parallelism                 =%#x\n",
+	Media Type                          =%#04x\n\
+	Flash Media Type                    =%#04x\n\
+	Number of Channels                  =%#04x\n\
+	Number of LUNs                      =%#04x\n\
+	Number of Planes                    =%#04x\n\
+	Number of Blocks                    =%#06x\n\
+	Number of Pages                     =%#06x\n\
+	Page Size                           =%#06x\n\
+	Controller Sector Size              =%#06x\n\
+	Sector OOB Size                     =%#06x\n\
+	tRD Typical                         =%#010x\n\
+	tRD Max                             =%#010x\n\
+	tPROG Typical                       =%#010x\n\
+	tPROG Max                           =%#010x\n\
+	tBERS Typical                       =%#010x\n\
+	tBERS Max                           =%#010x\n\
+	Multi-plane Operation Support       =%#010x\n\
+	Media and Controller Capabilities   =%#010x\n\
+	Channel Parallelism                 =%#06x\n",
 	geo.ggrp.mtype, geo.ggrp.fmtype, geo.ggrp.num_ch,
 	geo.ggrp.num_lun, geo.ggrp.num_pln, geo.ggrp.num_blk,
 	geo.ggrp.num_pg, geo.ggrp.fpg_sz, geo.ggrp.csecs,
@@ -116,7 +116,20 @@ static ssize_t __show_cfg_grp(char *buf)
 
 static ssize_t __show_l2p_tbl(char *buf)
 {
-	return snprintf(buf, sizeof(struct ufs_geo_l2p_tbl), "%s\n", geo.ggrp.l2ptbl);
+	char *hex;
+	int i;
+
+	hex = kmalloc(2110, GFP_KERNEL);
+	hex[2109] = '\0';
+	for (i=0; i < 2109; i++) {
+		hex[i] = 'a';
+	}
+
+	return sprintf(buf, "\
+	ID codes for READ ID command    =%#018llx\n\
+	Number of Pairs                 =%06x\n\
+	Pairs Values in Hexadecimal:\n%s\n", 
+	(u64)geo.ggrp.l2ptbl.id, geo.ggrp.l2ptbl.mlc.num_pairs, hex);
 }
 
 	/* .l2ptbl = {
