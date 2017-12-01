@@ -7,7 +7,7 @@
  * pos: current position in buf
  * len: length of buf
  */
-static int parse_config_parse_key(char *buf, char *val, int pos, int len)
+static int parse_config_parse_key(const char *buf, char *val, int pos, int len)
 {
 	char tmpbuf[16];
 	int valen = strlen(val);
@@ -31,7 +31,7 @@ static int parse_config_parse_key(char *buf, char *val, int pos, int len)
  * len: length of buf
  * cnt: count of 'val' by bytes. e.g. u8(1), u16(2), u32(4), u64(8)
  */
-static int parse_config_parse_value(char *buf, int pos, void *val, 
+static int parse_config_parse_value(const char *buf, int pos, void *val, 
 				int *off, int len, int cnt)
 {
 	int i, j=0, flag=0, qflag=0;

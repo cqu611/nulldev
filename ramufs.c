@@ -72,18 +72,18 @@ static ssize_t __show_ppa_fmt(char *buf)
 	int ret = 0;
 	
 	ret = sprintf(buf, "\
-	Channel bit start       =%#04x\n\
-	Channel bit length      =%#04x\n\
-	LUN bit start           =%#04x\n\
-	LUN bit length          =%#04x\n\
-	Plane bit start         =%#04x\n\
-	Plane bit length        =%#04x\n\
-	Block bit start         =%#04x\n\
-	Block bit length        =%#04x\n\
-	Page bit start          =%#04x\n\
-	Page bit length         =%#04x\n\
-	Sector bit start        =%#04x\n\
-	Sector bit length       =%#04x\n",
+	Channel bit start               =%#04x\n\
+	Channel bit length              =%#04x\n\
+	LUN bit start                   =%#04x\n\
+	LUN bit length                  =%#04x\n\
+	Plane bit start                 =%#04x\n\
+	Plane bit length                =%#04x\n\
+	Block bit start                 =%#04x\n\
+	Block bit length                =%#04x\n\
+	Page bit start                  =%#04x\n\
+	Page bit length                 =%#04x\n\
+	Sector bit start                =%#04x\n\
+	Sector bit length               =%#04x\n",
 	geo.ppaf.ch_off, geo.ppaf.ch_len, geo.ppaf.lun_off,
 	geo.ppaf.lun_len, geo.ppaf.pln_off, geo.ppaf.pln_len,
 	geo.ppaf.blk_off, geo.ppaf.blk_len, geo.ppaf.pg_off, 
@@ -97,25 +97,25 @@ static ssize_t __show_cfg_grp(char *buf)
 	int ret = 0;
 	
 	ret = sprintf(buf, "\
-	Media Type                          =%#04x\n\
-	Flash Media Type                    =%#04x\n\
-	Number of Channels                  =%#04x\n\
-	Number of LUNs                      =%#04x\n\
-	Number of Planes                    =%#04x\n\
-	Number of Blocks                    =%#06x\n\
-	Number of Pages                     =%#06x\n\
-	Page Size                           =%#06x\n\
-	Controller Sector Size              =%#06x\n\
-	Sector OOB Size                     =%#06x\n\
-	tRD Typical                         =%#010x\n\
-	tRD Max                             =%#010x\n\
-	tPROG Typical                       =%#010x\n\
-	tPROG Max                           =%#010x\n\
-	tBERS Typical                       =%#010x\n\
-	tBERS Max                           =%#010x\n\
-	Multi-plane Operation Support       =%#010x\n\
-	Media and Controller Capabilities   =%#010x\n\
-	Channel Parallelism                 =%#06x\n",
+	Media Type                      =%#04x\n\
+	Flash Media Type                =%#04x\n\
+	Number of Channels              =%#04x\n\
+	Number of LUNs                  =%#04x\n\
+	Number of Planes                =%#04x\n\
+	Number of Blocks                =%#06x\n\
+	Number of Pages                 =%#06x\n\
+	Page Size                       =%#06x\n\
+	Controller Sector Size          =%#06x\n\
+	Sector OOB Size                 =%#06x\n\
+	tRD Typical                     =%#010x\n\
+	tRD Max                         =%#010x\n\
+	tPROG Typical                   =%#010x\n\
+	tPROG Max                       =%#010x\n\
+	tBERS Typical                   =%#010x\n\
+	tBERS Max                       =%#010x\n\
+	Multi-plane Operation Support   =%#010x\n\
+	Media & Controller Capabilities =%#010x\n\
+	Channel Parallelism             =%#06x\n",
 	geo.ggrp.mtype, geo.ggrp.fmtype, geo.ggrp.num_ch,
 	geo.ggrp.num_lun, geo.ggrp.num_pln, geo.ggrp.num_blk,
 	geo.ggrp.num_pg, geo.ggrp.fpg_sz, geo.ggrp.csecs,
@@ -133,6 +133,12 @@ static ssize_t __show_l2p_tbl(char *buf)
 	int i, j, ret=0;
 	src = geo.ggrp.l2ptbl.mlc.pairs;
 	dst = hex;
+	u64 id=0, k;
+
+	for (i=0; i < 8; i++) {
+		k = geo.ggrp.l2ptbl.id[i];
+		id = id | k << 8 * (7-i);
+	}
 	
 	for (i=0; i < 27; i++) {
 		for (j=0; j < 8; j++) {
@@ -158,7 +164,7 @@ static ssize_t __show_l2p_tbl(char *buf)
 	ID codes for READ ID command    =%#018llx\n\
 	Number of Pairs                 =%06x\n\
 	Pairs Values in Hexadecimal:\n%s\n", 
-	(u64)geo.ggrp.l2ptbl.id, geo.ggrp.l2ptbl.mlc.num_pairs, hex);
+	id, geo.ggrp.l2ptbl.mlc.num_pairs, hex);
 
 	return ret;
 }
@@ -171,7 +177,7 @@ static inline int __store_ufs_geo(const char *buf, size_t count)
 	pr_info("RAMUFS: __parse_config_ufs_geo, buffer size= %lu\n", count);
 	memcpy(&tmpgeo, &geo, sizeof(struct ufs_geo));
 	ret = __parse_config_ufs_geo(buf, count, &tmpgeo);
-	if (ret >= 0)
+	if (!ret)
 		memcpy(&geo, &tmpgeo, sizeof(struct ufs_geo));
 	return ret;
 }
@@ -184,7 +190,7 @@ static inline int __store_ppa_fmt(const char *buf, size_t count)
 	pr_info("RAMUFS: __parse_config_ppa_fmt, buffer size= %lu\n", count);
 	memcpy(&tmpgeo, &geo, sizeof(struct ufs_geo));
 	ret = __parse_config_ppa_fmt(buf, count, &tmpgeo);
-	if (ret >= 0)
+	if (!ret)
 		memcpy(&geo, &tmpgeo, sizeof(struct ufs_geo));
 	return ret;
 }
@@ -197,7 +203,7 @@ static inline int __store_cfg_grp(const char *buf, size_t count)
 	pr_info("RAMUFS: __parse_config_cfg_grp, buffer size= %lu\n", count);
 	memcpy(&tmpgeo, &geo, sizeof(struct ufs_geo));
 	ret = __parse_config_cfg_grp(buf, count, &tmpgeo);
-	if (ret >= 0)
+	if (!ret)
 		memcpy(&geo, &tmpgeo, sizeof(struct ufs_geo));
 	return ret;
 }
@@ -210,7 +216,7 @@ static inline int __store_l2p_tbl(const char *buf, size_t count)
 	pr_info("RAMUFS: __parse_config_l2p_tbl, buffer size= %lu\n", count);
 	memcpy(&tmpgeo, &geo, sizeof(struct ufs_geo));
 	ret = __parse_config_l2p_tbl(buf, count, &tmpgeo);
-	if (ret >= 0)
+	if (!ret)
 		memcpy(&geo, &tmpgeo, sizeof(struct ufs_geo));
 	return ret;
 }
