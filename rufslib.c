@@ -34,12 +34,9 @@ static int __parse_config_parse_key(char *buf, char *val, int pos, int len)
 static int __parse_config_parse_value(char *buf, int pos, void *val, 
 				int *off, int len, int cnt)
 {
-	int i, j=0, flag=0, ret;
-	u8 *val8;
-	u16 *val16;
-	u32 *val32;
-	u64 *val64;
-	char tmpbuf[32], dst[8];
+	int i, j=0, flag=0, ret, tmpval;
+	u8 dst[8];
+	char tmpbuf[32];
 
 	memset(dst, 0, 8);
 	for (i=0; pos + i < len; i++) {
@@ -52,36 +49,24 @@ static int __parse_config_parse_value(char *buf, int pos, void *val,
 				tmpbuf[j] = 0;
 
 				pr_err("j=%d, i=%d, buf=%s, tmpbuf=%s\n", j, i, buf, tmpbuf);
-				
-				ret = hex2bin(dst, tmpbuf, j/2);
+				ret = kstrtoint(tmpbuf, 16, tmpval);
+				//ret = hex2bin(dst, tmpbuf, j/2);
 				if (ret)
 					return RU_PARSE_STATUS_ERROR;
-
-				pr_err("dst=%d,%d,%d,%d,%d,%d,%d,%d\n", dst[0],dst[1],dst[2],dst[3],dst[4],dst[5],dst[6],dst[7]);
+				pr_err("tmp val=%d\n", tmpval);
+				pr_err("dst=%u,%u,%u,%u,%u,%u,%u,%u\n", dst[0],dst[1],dst[2],dst[3],dst[4],dst[5],dst[6],dst[7]);
 				
-				if (cnt == 1) {
-					val8 = (u8*)val;
-					pr_err("&val=%d\n", val8);
-					*val8 = (u8)dst[0];
+				if (cnt == 1) {					
+					*(u8*)val = (u8)tmpval;
 				}
 				else if (cnt == 2) {
-					val16 = (u16*)val;
-					pr_err("&val=%d\n", val16);
-					*val16 = ((u16)dst[0] << 8) | (u16)dst[1];
+					*(u16*)val = (u16)tmpval;
 				}
 				else if (cnt == 4) {
-					val32 = (u32*)val;
-					pr_err("&val=%d\n", val32);
-					*val32 = ((u32)dst[0] << 24) | ((u32)dst[1] << 16)
-							| ((u32)dst[2] << 8) | (u32)dst[3];
+					*(u32*)val = (u32)tmpval;
 				}
 				else if (cnt == 8) {
-					val64 = (u64*)val;
-					pr_err("&val=%d\n", val64);
-					*val64 = ((u64)dst[0] << 56) | ((u64)dst[1] << 48)
-							| ((u64)dst[2] << 40) | ((u64)dst[3] << 32)
-							| ((u64)dst[4] << 24) | ((u64)dst[5] << 16)
-							| ((u64)dst[6] << 8) | (u64)dst[7];
+					*(u64*)val = (u64)tmpval;
 				}
 				else
 					return RU_PARSE_STATUS_ERROR;
@@ -112,7 +97,7 @@ static void __test__(void)
 	u8 val8;
 	u16 val16;
 	u32 val32;
-	u64 val64,
+	u64 val64;
 	int valen;
 
 	status = __parse_config_parse_key(a1, "abcd", 0, 9);
