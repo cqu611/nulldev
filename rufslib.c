@@ -266,15 +266,15 @@ static int parse_config_ufs_geo(const char *buf, int *pos,
 	p = &geo->version + attr->offset;
 	
 	if (attr->typesize == 1) {
-		val <<= 56;
+		//val <<= 56;
 		memcpy(p, &val, 1);
 	}
 	else if (attr->typesize == 2) {
-		val <<= 48;
+		//val <<= 48;
 		memcpy(p, &val, 2);
 	}
 	else if (attr->typesize == 4) {
-		val <<= 32;
+		//val <<= 32;
 		memcpy(p, &val, 4);
 	}
 	else if (attr->typesize == 8)
