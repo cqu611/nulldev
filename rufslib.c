@@ -51,7 +51,7 @@ static const struct ufs_geo_config_attr_tbl prs_cfg_cfg_grp[] = {
 static const struct ufs_geo_config_attr_tbl prs_cfg_l2p_tbl[] = {
 	{ "id", 73, 8 },
 	{ "num_pairs", 81, 2 },
-	{ "pairs", 83, 886 },
+	/* { "pairs", 83, 886 }, */	/* do not set pairs into current table */
 	{ NULL, 0, 0 }
 };
 
@@ -120,13 +120,10 @@ static int parse_config_parse_value(const char *buf, int pos, void *val,
 		tmpbuf[j] = 0;
 		ret = kstrtoint(tmpbuf, 16, &tmpval);
 		
-		if (ret || j == 0)	return RU_PARSE_STATUS_ERROR;		
-		if (cnt == 1)		*(u8*)val = (u8)tmpval;
-		else if (cnt == 2)	*(u16*)val = (u16)tmpval;
-		else if (cnt == 4)	*(u32*)val = (u32)tmpval;
-		else if (cnt == 8)	*(u64*)val = (u64)tmpval;
-		else				return RU_PARSE_STATUS_ERROR;
-		
+		if (ret || j == 0)
+			return RU_PARSE_STATUS_ERROR;
+
+		memcpy(val, &tmpval, cnt);
 		*off = i;
 		return RU_PARSE_STATUS_SPACE;
 	} 
@@ -146,108 +143,13 @@ static inline void parse_config_init(char *tmpbuf, const char *buf, int count)
 	}
 }
 
-/**
- * buf: buffer input
- * pos: current position in buffer
- * count: length of buffer
- * geo: to save value
- */
-static int parse_config_ufs_geo_v(const char *buf, int *pos,
-				size_t count, struct ufs_geo *geo)
-{
-	int ret, offset, keylen=7;
-	u8 val;
-
-	ret = parse_config_parse_key(buf, "version", *pos, count);
-	if (ret == RU_PARSE_STATUS_UNMATCH) {
-		keylen = 5;
-		ret = parse_config_parse_key(buf, "vnvmt", *pos, count);
-	}
-	if (ret == RU_PARSE_STATUS_RANGED || ret == RU_PARSE_STATUS_UNMATCH)
-		return ret;
-
-	if (ret == RU_PARSE_STATUS_MATCHED) {
-		*pos += keylen;
-		ret = parse_config_parse_value(buf, *pos, &val, &offset, count, 1);
-		if (ret == RU_PARSE_STATUS_ERROR)
-			return ret;
-		*pos += offset;
-		if (keylen == 7)
-			geo->version = val;
-		else
-			geo->vnvmt = val;
-		return RU_PARSE_STATUS_SPACE;
-	} else {
-		pr_err("RAMUFS: parse_config_ufs_geo_v, bad status: %d\n", ret);
-		return -EINVAL;
-	}
-}
-
-static int parse_config_ufs_geo_c(const char *buf, int *pos,
-				size_t count, struct ufs_geo *geo)
-{	
-	int ret, offset, keylen=5, valtyp=1;
-	u32 val;
-
-	ret = parse_config_parse_key(buf, "cgrps", *pos, count);
-	if (ret == RU_PARSE_STATUS_UNMATCH) {
-		keylen = 3;
-		valtyp = 4;
-		ret = parse_config_parse_key(buf, "cap", *pos, count);
-	}
-	if (ret == RU_PARSE_STATUS_RANGED || ret == RU_PARSE_STATUS_UNMATCH)
-		return ret;
-
-	if (ret == RU_PARSE_STATUS_MATCHED) {
-		*pos += keylen;
-		ret = parse_config_parse_value(buf, *pos, &val, &offset, count, valtyp);
-		if (ret == RU_PARSE_STATUS_ERROR)
-			return ret;
-		*pos += offset;
-		if (keylen == 5)
-			geo->cgrps = (u8)val;
-		else
-			geo->cap = val;
-		return RU_PARSE_STATUS_SPACE;
-	} else {
-		pr_err("RAMUFS: parse_config_ufs_geo_c, bad status: %d\n", ret);
-		return -EINVAL;
-	}
-}
-
-static int parse_config_ufs_geo_d(const char *buf, int *pos,
-				size_t count, struct ufs_geo *geo)
-{
-	int ret, offset, keylen=3, valtyp=4;
-	u32 val;
-
-	ret = parse_config_parse_key(buf, "dom", *pos, count);
-	if (ret == RU_PARSE_STATUS_RANGED || ret == RU_PARSE_STATUS_UNMATCH)
-		return ret;
-
-	if (ret == RU_PARSE_STATUS_MATCHED) {
-		*pos += keylen;
-		ret = parse_config_parse_value(buf, *pos, &val, &offset, count, valtyp);
-		if (ret == RU_PARSE_STATUS_ERROR)
-			return ret;
-		*pos += offset;
-		geo->dom = val;
-		return RU_PARSE_STATUS_SPACE;
-	} else {
-		pr_err("RAMUFS: parse_config_ufs_geo_d, bad status: %d\n", ret);
-		return -EINVAL;
-	}
-}
-
-static int parse_config_ufs_geo(const char *buf, int *pos,
-				size_t count, struct ufs_geo *geo)
+static int parse_config_item(const char *buf, int *pos, size_t count, 
+				struct ufs_geo *geo, struct ufs_geo_config_attr_tbl *attr)
 {
 	int ret, offset;
 	void *p;
 	u64 val;
-	struct ufs_geo_config_attr_tbl *attr;
-	
-	attr = &prs_cfg_ufs_geo[0];
+
 	while(attr->name) {
 		ret = parse_config_parse_key(buf, attr->name, *pos, count);
 		if (ret == RU_PARSE_STATUS_MATCHED)
@@ -292,7 +194,7 @@ int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 		}
 		if (tmpbuf[i] == 0x20)
 			continue;
-		status = parse_config_ufs_geo(tmpbuf, &i, count, geo);
+		status = parse_config_item(tmpbuf, &i, count, geo, &prs_cfg_ufs_geo[0]);
 	}
 
 destroy_buf:
@@ -459,6 +361,7 @@ static int parse_config_ppa_fmt_s(const char *buf, int *pos,
 
 int __parse_config_ppa_fmt(const char *buf, size_t count, struct ufs_geo *geo)
 {
+
 	int i, ret = 0, status;
 	char *tmpbuf;
 	
@@ -470,32 +373,17 @@ int __parse_config_ppa_fmt(const char *buf, size_t count, struct ufs_geo *geo)
 	}	
 	parse_config_init(tmpbuf, buf, count);
 
-	/* begin to parse input string */
 	status = RU_PARSE_STATUS_SPACE;
 	for (i=0; i < count; i++) {
 		if (status != RU_PARSE_STATUS_SPACE) {
 			ret = -EINVAL;
 			goto destroy_buf;
 		}
-		if (tmpbuf[i] == 'c')
-			status = parse_config_ppa_fmt_c(tmpbuf, &i, count, geo);
-		else if (tmpbuf[i] == 'l') 
-			status = parse_config_ppa_fmt_l(tmpbuf, &i, count, geo);
-		else if (tmpbuf[i] == 'p')
-			status = parse_config_ppa_fmt_p(tmpbuf, &i, count, geo);
-		else if (tmpbuf[i] == 'b')
-			status = parse_config_ppa_fmt_b(tmpbuf, &i, count, geo);
-		else if (tmpbuf[i] == 's')
-			status = parse_config_ppa_fmt_s(tmpbuf, &i, count, geo);
-		else if (tmpbuf[i] == 0x20)
+		if (tmpbuf[i] == 0x20)
 			continue;
-		else {
-			pr_err("RAMUFS: __parse_config_ppa_fmt, bad status: %d\n", status);
-			ret = -EINVAL;
-			goto destroy_buf;
-		}
+		status = parse_config_item(tmpbuf, &i, count, geo, &prs_cfg_ppa_fmt[0]);
 	}
-
+		
 destroy_buf:
 	kfree(tmpbuf);
 out:
@@ -735,32 +623,15 @@ int __parse_config_cfg_grp(const char *buf, size_t count, struct ufs_geo *geo)
 	}	
 	parse_config_init(tmpbuf, buf, count);
 
-	/* begin to parse input string */
 	status = RU_PARSE_STATUS_SPACE;
 	for (i=0; i < count; i++) {
 		if (status != RU_PARSE_STATUS_SPACE) {
 			ret = -EINVAL;
 			goto destroy_buf;
 		}
-		if (tmpbuf[i] == 'm')
-			status = parse_config_cfg_grp_m(tmpbuf, &i, count, geo);
-		else if (tmpbuf[i] == 'f') 
-			status = parse_config_cfg_grp_f(tmpbuf, &i, count, geo);
-		else if (tmpbuf[i] == 'n')
-			status = parse_config_cfg_grp_n(tmpbuf, &i, count, geo);
-		else if (tmpbuf[i] == 'c')
-			status = parse_config_cfg_grp_c(tmpbuf, &i, count, geo);
-		else if (tmpbuf[i] == 's')
-			status = parse_config_cfg_grp_s(tmpbuf, &i, count, geo);
-		else if (tmpbuf[i] == 't')
-			status = parse_config_cfg_grp_t(tmpbuf, &i, count, geo);
-		else if (tmpbuf[i] == 0x20)
+		if (tmpbuf[i] == 0x20)
 			continue;
-		else {
-			pr_err("RAMUFS: __parse_config_cfg_grp, bad status: %d\n", status);
-			ret = -EINVAL;
-			goto destroy_buf;
-		}
+		status = parse_config_item(tmpbuf, &i, count, geo, &prs_cfg_cfg_grp[0]);
 	}
 
 destroy_buf:
@@ -769,26 +640,78 @@ out:
 	return ret;
 }
 
+void __parse_config_l2p_tbl_cpy(const char *buf, size_t count, 
+				int pos, struct ufs_geo *geo)
+{
+	int i=0, j=0, k=0, flag=0, ret, val;
+	u8 pairs[1994];
+	char *p, *q;
+
+	memset(pairs, 0, 1994);
+	/* so we set i < 884 rather than 886 in order to align memory */
+	while(pos < count && i < 884) {
+		if (buf[pos] == 0x20) {
+			pos++;
+			continue;
+		}
+		if (buf[pos] == 0x3d) {
+			if (flag)
+				return;
+			flag = 1;
+			pos++;
+			continue;
+		}
+		pairs[i++] = buf[pos++];
+		/* insert a '\0' per 8 bytes here */
+		if (i % 8 == 0)
+			i++;
+	}
+
+	p = &pairs[0];
+	q = &geo->ggrp.l2ptbl.mlc.pairs[0];
+	for (j=0, k=0; j < i; j+=9, k+=4) {
+		p += j;
+		ret = kstrtoint(p, 16, &val);
+		if (ret)
+			return -EINVAL;
+		q += k;
+		memcpy(q, &val, 4);
+	}
+}
+
 int __parse_config_l2p_tbl(const char *buf, size_t count, struct ufs_geo *geo)
 {
-	int i, ret = 0;
+	int i, ret = 0, status;
 	char *tmpbuf;
-
+	
 	tmpbuf = kmalloc(count, GFP_KERNEL);
 	if (!tmpbuf) {
 		pr_err("RAMUFS: kmalloc failed, out of memory\n");
 		ret = -ENOMEM;
 		goto out;
+	}	
+	parse_config_init(tmpbuf, buf, count);
+
+	status = RU_PARSE_STATUS_SPACE;
+	for (i=0; i < count; i++) {		
+		if (status != RU_PARSE_STATUS_SPACE) {	
+			
+			status = parse_config_parse_key(tmpbuf, "pairs", i, count);
+			if (status == RU_PARSE_STATUS_MATCHED) {
+				__parse_config_l2p_tbl_cpy(tmpbuf, count, i+5, geo);
+				goto destroy_buf;
+			}
+			
+			ret = -EINVAL;
+			goto destroy_buf;
+		}
+		if (tmpbuf[i] == 0x20)
+			continue;
+		status = parse_config_item(tmpbuf, &i, count, geo, &prs_cfg_l2p_tbl[0]);
 	}
 
-	memcpy(tmpbuf, buf, count);
-	for (i=0; i < count; i++)
-		if (tmpbuf[i] == '\t' || tmpbuf[i] == '\r' || tmpbuf[i] == '\n')
-			tmpbuf[i] = 0x20;
-	
-	
+destroy_buf:
 	kfree(tmpbuf);
-
 out:
 	return ret;
 }
