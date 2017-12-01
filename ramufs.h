@@ -90,7 +90,11 @@ struct ramufs {
 };
 //#define kobj_to_ramufs(x) container_of(x, struct ramufs, kobj)
 
-
+struct ufs_geo_config_attr_tbl {
+	char name[10];
+	u16 offset;
+	u8 typesize;
+};
 
 int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo);
 int __parse_config_ppa_fmt(const char *buf, size_t count, struct ufs_geo *geo);

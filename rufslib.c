@@ -1,5 +1,14 @@
 #include "ramufs.h"
 
+static const struct ufs_geo_config_attr_tbl prs_cfg_ufs_geo[] = {
+	{ "version", 0, 0 }
+	{ "vnvmt", 0, 0 }
+	{ "cgrps", 0, 0 }
+	{ "cap", 0, 0 }
+	{ "dom", 0, 0 }
+	{ NULL, 0, 0 }
+};
+
 /**
  * matching configure keys
  * buf: buffer input
@@ -187,6 +196,13 @@ int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 {
 	int i, ret = 0, status;
 	char *tmpbuf;
+
+	pr_err("geo addr=%d\n", geo);
+	pr_err("version addr=%d\n", &geo->version);
+	pr_err("vnvmt addr=%d\n", &geo->vnvmt);
+	pr_err("cgrps addr=%d\n", &geo->cgrps);
+	pr_err("cap addr=%d\n", &geo->cap);
+	pr_err("dom addr=%d\n", &geo->dom);
 	
 	tmpbuf = kmalloc(count, GFP_KERNEL);
 	if (!tmpbuf) {
