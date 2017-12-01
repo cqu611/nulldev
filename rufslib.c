@@ -6,7 +6,7 @@ static const struct ufs_geo_config_attr_tbl prs_cfg_ufs_geo[] = {
 	{ "cgrps", 2, 1 },
 	{ "cap", 3, 4 },
 	{ "dom", 7, 4 },
-	{ NULL, 0, 0 }
+	{ NULL }
 };
 
 static const struct ufs_geo_config_attr_tbl prs_cfg_ppa_fmt[] = {
@@ -279,8 +279,7 @@ void __parse_config_l2p_tbl_cpy(const char *buf, size_t count,
 			continue;
 		}
 		if (buf[pos] == 0x3d) {
-			if (flag)
-				return;
+			if (flag) return;
 			flag = 1;
 			pos++;
 			continue;
@@ -296,8 +295,7 @@ void __parse_config_l2p_tbl_cpy(const char *buf, size_t count,
 	for (j=0, k=0; j < i; j+=9, k+=4) {
 		p += j;
 		ret = kstrtoint(p, 16, &val);
-		if (ret)
-			return -EINVAL;
+		if (ret) return;
 		q += k;
 		memcpy(q, &val, 4);
 	}
