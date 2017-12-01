@@ -78,45 +78,7 @@ static int parse_config_parse_value(const char *buf, int pos, void *val,
 	return RU_PARSE_STATUS_ERROR;
 }
 
-/*
-static void __test__(void)
-{
-	char *a1 = "abcd    ";
-	char *a2 = "abcdefgh";
-	char *a3 = "abcdefgh";
-	char *a4 = "12asbt 4";
-	char *b1 = "12      ";
-	char *b2 = " 45a4 ad";
-	char *b3 = "  456b  ";
-	char *b4 = "  4efe93";
-	int status;
-	u8 val8;
-	u16 val16;
-	u32 val32;
-	u64 val64;
-	int valen;
-
-	status = __parse_config_parse_key(a1, "abcd", 0, 9);
-	pr_err("a1=%d\n", status);
-	status = __parse_config_parse_key(a2, "cde", 2, 9);
-	pr_err("a2=%d\n", status);
-	status = __parse_config_parse_key(a3, "cde", 0, 9);
-	pr_err("a3=%d\n", status);
-	status = __parse_config_parse_key(a4, "as", 2, 9);
-	pr_err("a4=%d\n", status);
-
-	status = __parse_config_parse_value(b1, 0, &val8, &valen, 9, 1);
-	pr_err("b1=%d, value=%u, valen=%d\n", status, val8, valen);
-	status = __parse_config_parse_value(b2, 1, &val16, &valen, 9, 2);
-	pr_err("b2=%d, value=%u, valen=%d\n", status, val16, valen);
-	status = __parse_config_parse_value(b3, 2, &val32, &valen, 9, 4);
-	pr_err("b3=%d, value=%u, valen=%d\n", status, val32, valen);
-	status = __parse_config_parse_value(b4, 1, &val64, &valen, 9, 8);
-	pr_err("b4=%d, value=%lu, valen=%d\n", status, val64, valen);
-}
-*/
-
-static inline void parse_config_init(char *tmpbuf, char *buf, int count)
+static inline void parse_config_init(char *tmpbuf, const char *buf, int count)
 {
 	int i;
 	
@@ -463,26 +425,269 @@ out:
 	return ret;
 }
 
+static int parse_config_cfg_grp_m(const char *buf, int *pos,
+				size_t count, struct ufs_geo *geo)
+{
+	int ret, offset, keylen=5, valtyp=1, nr=0;
+	u32 val;
+
+	ret = parse_config_parse_key(buf, "mtype", *pos, count);
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 1;
+		valtyp = 4;
+		ret = parse_config_parse_key(buf, "mccap", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 2;
+		valtyp = 4;
+		keylen = 4;
+		ret = parse_config_parse_key(buf, "mpos", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_MATCHED) {
+		*pos += keylen;
+		ret = parse_config_parse_value(buf, *pos, &val, &offset, count, valtyp);
+		if (ret == RU_PARSE_STATUS_ERROR)
+			return ret;
+		*pos += offset;
+		if (nr == 0) 
+			geo->ggrp.mtype = (u8)val;
+		else if (nr == 1)
+			geo->ggrp.mccap = val;
+		else 
+			geo->ggrp.mpos = val;
+		return RU_PARSE_STATUS_SPACE;
+	} else {
+		pr_err("RAMUFS: parse_config_cfg_grp_m, bad status: %d\n", ret);
+		return -EINVAL;
+	}
+}
+
+static int parse_config_cfg_grp_f(const char *buf, int *pos,
+				size_t count, struct ufs_geo *geo)
+{
+	int ret, offset, keylen=6, valtyp=1, nr=0;
+	u32 val;
+
+	ret = parse_config_parse_key(buf, "fmtype", *pos, count);
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 1;
+		valtyp = 2;
+		ret = parse_config_parse_key(buf, "fpg_sz", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_MATCHED) {
+		*pos += keylen;
+		ret = parse_config_parse_value(buf, *pos, &val, &offset, count, valtyp);
+		if (ret == RU_PARSE_STATUS_ERROR)
+			return ret;
+		*pos += offset;
+		if (nr == 0) 
+			geo->ggrp.fmtype = (u8)val;
+		else 
+			geo->ggrp.fpg_sz = (u16)val;
+		return RU_PARSE_STATUS_SPACE;
+	} else {
+		pr_err("RAMUFS: parse_config_cfg_grp_f, bad status: %d\n", ret);
+		return -EINVAL;
+	}
+}
+
+static int parse_config_cfg_grp_n(const char *buf, int *pos,
+				size_t count, struct ufs_geo *geo)
+{
+	int ret, offset, keylen=6, valtyp=1, nr=0;
+	u32 val;
+
+	ret = parse_config_parse_key(buf, "num_ch", *pos, count);
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 1;
+		keylen = 7;
+		ret = parse_config_parse_key(buf, "num_lun", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 2;
+		keylen = 7;
+		ret = parse_config_parse_key(buf, "num_pln", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 3;
+		valtyp = 2;
+		keylen = 7;
+		ret = parse_config_parse_key(buf, "num_blk", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 4;
+		valtyp = 2;
+		keylen = 6;
+		ret = parse_config_parse_key(buf, "num_pg", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_MATCHED) {
+		*pos += keylen;
+		ret = parse_config_parse_value(buf, *pos, &val, &offset, count, valtyp);
+		if (ret == RU_PARSE_STATUS_ERROR)
+			return ret;
+		*pos += offset;
+		if (nr == 0) 
+			geo->ggrp.num_ch = (u8)val;
+		else if (nr == 1)
+			geo->ggrp.num_lun = (u8)val;
+		else if (nr == 2)
+			geo->ggrp.num_pln = (u8)val;
+		else if (nr == 3)
+			geo->ggrp.num_blk = (u16)val;
+		else
+			geo->ggrp.num_pg = (u16)val;
+		return RU_PARSE_STATUS_SPACE;
+	} else {
+		pr_err("RAMUFS: parse_config_cfg_grp_n, bad status: %d\n", ret);
+		return -EINVAL;
+	}
+}
+
+static int parse_config_cfg_grp_c(const char *buf, int *pos,
+				size_t count, struct ufs_geo *geo)
+{
+	int ret, offset, keylen=5, valtyp=2, nr=0;
+	u32 val;
+
+	ret = parse_config_parse_key(buf, "csecs", *pos, count);
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 1;
+		keylen = 4;
+		ret = parse_config_parse_key(buf, "cpar", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_MATCHED) {
+		*pos += keylen;
+		ret = parse_config_parse_value(buf, *pos, &val, &offset, count, valtyp);
+		if (ret == RU_PARSE_STATUS_ERROR)
+			return ret;
+		*pos += offset;
+		if (nr == 0) 
+			geo->ggrp.csecs = (u16)val;
+		else 
+			geo->ggrp.cpar = (u16)val;
+		return RU_PARSE_STATUS_SPACE;
+	} else {
+		pr_err("RAMUFS: parse_config_cfg_grp_c, bad status: %d\n", ret);
+		return -EINVAL;
+	}
+}
+
+static int parse_config_cfg_grp_s(const char *buf, int *pos,
+				size_t count, struct ufs_geo *geo)
+{
+	int ret, offset, keylen=3, valtyp=2;
+	u32 val;
+
+	ret = parse_config_parse_key(buf, "sos", *pos, count);
+	if (ret == RU_PARSE_STATUS_MATCHED) {
+		*pos += keylen;
+		ret = parse_config_parse_value(buf, *pos, &val, &offset, count, valtyp);
+		if (ret == RU_PARSE_STATUS_ERROR)
+			return ret;
+		*pos += offset;
+		geo->ggrp.sos = (u16)val;
+		return RU_PARSE_STATUS_SPACE;
+	} else {
+		pr_err("RAMUFS: parse_config_cfg_grp_s, bad status: %d\n", ret);
+		return -EINVAL;
+	}
+}
+
+static int parse_config_cfg_grp_t(const char *buf, int *pos,
+				size_t count, struct ufs_geo *geo)
+{
+	int ret, offset, keylen=4, valtyp=4, nr=0;
+	u32 val;
+
+	ret = parse_config_parse_key(buf, "trdt", *pos, count);
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 1;
+		ret = parse_config_parse_key(buf, "trdm", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 2;
+		ret = parse_config_parse_key(buf, "tprt", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 3;
+		ret = parse_config_parse_key(buf, "tprm", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 4;
+		ret = parse_config_parse_key(buf, "tbet", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 5;
+		ret = parse_config_parse_key(buf, "tbem", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_MATCHED) {
+		*pos += keylen;
+		ret = parse_config_parse_value(buf, *pos, &val, &offset, count, valtyp);
+		if (ret == RU_PARSE_STATUS_ERROR)
+			return ret;
+		*pos += offset;
+		if (nr == 0) 
+			geo->ggrp.trdt = val;
+		else if (nr == 1)
+			geo->ggrp.trdm = val;
+		else if (nr == 2)
+			geo->ggrp.tprt = val;
+		else if (nr == 3)
+			geo->ggrp.tprm = val;
+		else if (nr == 4)
+			geo->ggrp.tbet = val;
+		else 
+			geo->ggrp.tbem = val;
+		return RU_PARSE_STATUS_SPACE;
+	} else {
+		pr_err("RAMUFS: parse_config_cfg_grp_t, bad status: %d\n", ret);
+		return -EINVAL;
+	}
+}
+
 int __parse_config_cfg_grp(const char *buf, size_t count, struct ufs_geo *geo)
 {
-	int i, ret = 0;
+	int i, ret = 0, status;
 	char *tmpbuf;
-
+	
 	tmpbuf = kmalloc(count, GFP_KERNEL);
 	if (!tmpbuf) {
 		pr_err("RAMUFS: kmalloc failed, out of memory\n");
 		ret = -ENOMEM;
 		goto out;
+	}	
+	parse_config_init(tmpbuf, buf, count);
+
+	/* begin to parse input string */
+	status = RU_PARSE_STATUS_SPACE;
+	for (i=0; i < count; i++) {
+		if (status != RU_PARSE_STATUS_SPACE) {
+			ret = -EINVAL;
+			goto destroy_buf;
+		}
+		if (tmpbuf[i] == 'm')
+			status = parse_config_cfg_grp_m(tmpbuf, &i, count, geo);
+		else if (tmpbuf[i] == 'f') 
+			status = parse_config_cfg_grp_f(tmpbuf, &i, count, geo);
+		else if (tmpbuf[i] == 'n')
+			status = parse_config_cfg_grp_n(tmpbuf, &i, count, geo);
+		else if (tmpbuf[i] == 'c')
+			status = parse_config_cfg_grp_c(tmpbuf, &i, count, geo);
+		else if (tmpbuf[i] == 's')
+			status = parse_config_cfg_grp_s(tmpbuf, &i, count, geo);
+		else if (tmpbuf[i] == 't')
+			status = parse_config_cfg_grp_t(tmpbuf, &i, count, geo);
+		else if (tmpbuf[i] == 0x20)
+			continue;
+		else {
+			pr_err("RAMUFS: __parse_config_cfg_grp, bad status: %d\n", status);
+			ret = -EINVAL;
+			goto destroy_buf;
+		}
 	}
 
-	memcpy(tmpbuf, buf, count);
-	for (i=0; i < count; i++)
-		if (tmpbuf[i] == '\t' || tmpbuf[i] == '\r' || tmpbuf[i] == '\n')
-			tmpbuf[i] = 0x20;
-	
-	
+destroy_buf:
 	kfree(tmpbuf);
-
 out:
 	return ret;
 }
