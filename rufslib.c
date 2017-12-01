@@ -1,13 +1,60 @@
 #include "ramufs.h"
 
 static const struct ufs_geo_config_attr_tbl prs_cfg_ufs_geo[] = {
-	{ "version", 0, 0 },
-	{ "vnvmt", 0, 0 },
-	{ "cgrps", 0, 0 },
-	{ "cap", 0, 0 },
-	{ "dom", 0, 0 },
+	{ "version", 0, 1 },
+	{ "vnvmt", 1, 1 },
+	{ "cgrps", 2, 1 },
+	{ "cap", 3, 4 },
+	{ "dom", 7, 4 },
 	{ NULL, 0, 0 }
 };
+
+static const struct ufs_geo_config_attr_tbl prs_cfg_ppa_fmt[] = {
+	{ "ch_off", 11, 1 },
+	{ "ch_len", 12, 1 },
+	{ "lun_off", 13, 1 },
+	{ "lun_len", 14, 1 },
+	{ "pln_off", 15, 1 },
+	{ "pln_len", 16, 1 },
+	{ "blk_off", 17, 1 },
+	{ "blk_len", 18, 1 },
+	{ "pg_off", 19, 1 },
+	{ "pg_len", 20, 1 },
+	{ "sect_off", 21, 1 },
+	{ "sect_len", 22, 1 },
+	{ NULL, 0, 0 }
+};
+
+static const struct ufs_geo_config_attr_tbl prs_cfg_cfg_grp[] = {
+	{ "mtype", 23, 1 },
+	{ "fmtype", 24, 1 },
+	{ "num_ch", 25, 1 },
+	{ "num_lun", 26, 1 },
+	{ "num_pln", 27, 1 },
+	{ "num_blk", 29, 2 },
+	{ "num_pg", 31, 2 },
+	{ "fpg_sz", 33, 2 },
+	{ "csecs", 35, 2 },
+	{ "sos", 37, 2 },
+	{ "trdt", 39, 4 },
+	{ "trdm", 43, 4 },
+	{ "tprt", 47, 4 },
+	{ "tprm", 51, 4 },
+	{ "tbet", 55, 4 },
+	{ "tbem", 59, 4 },
+	{ "mpos", 63, 4 },
+	{ "mccap", 67, 4 },
+	{ "cpar", 71, 2 },
+	{ NULL, 0, 0 }
+};
+
+static const struct ufs_geo_config_attr_tbl prs_cfg_l2p_tbl[] = {
+	{ "id", 73, 8 },
+	{ "num_pairs", 81, 2 },
+	{ "pairs", 83, 886 },
+	{ NULL, 0, 0 }
+};
+
 
 /**
  * matching configure keys
@@ -192,55 +239,46 @@ static int parse_config_ufs_geo_d(const char *buf, int *pos,
 	}
 }
 
+static int parse_config_ufs_geo(const char *buf, int *pos,
+				size_t count, struct ufs_geo *geo)
+{
+	int ret, offset;
+	u64 val;
+	void *p;
+	struct ufs_geo_config_attr_tbl *attr;
+
+	attr = &prs_cfg_ufs_geo[0];
+	while(attr->name) {
+		ret = parse_config_parse_key(buf, attr->name, *pos, count);
+		if (ret == RU_PARSE_STATUS_MATCHED)
+			break;
+		attr++;
+	}
+
+	if (ret != RU_PARSE_STATUS_MATCHED)
+		return ret;
+	*pos += strlen(attr->name);
+	ret = parse_config_parse_value(buf, *pos, &val, &offset, count, attr->typesize);
+	
+	if (ret == RU_PARSE_STATUS_ERROR)
+		return ret;
+	*pos += offset;
+	p = &geo->version + attr->offset;
+
+	if (attr->typesize == 1)		p = (u8)val;
+	else if (attr->typesize == 2)	p = (u16)val;
+	else if (attr->typesize == 4)	p = (u32)val;
+	else if (attr->typesize == 8)	p = (u64)val;
+	else							return -EINVAL;
+
+	return RU_PARSE_STATUS_SPACE;
+}
+
 int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 {
 	int i, ret = 0, status;
 	char *tmpbuf;
 
-	pr_err("geo addr=%u\n", geo);
-	pr_err("version addr=%u\n", &geo->version);
-	pr_err("vnvmt addr=%u\n", &geo->vnvmt);
-	pr_err("cgrps addr=%u\n", &geo->cgrps);
-	pr_err("cap addr=%u\n", &geo->cap);
-	pr_err("dom addr=%u\n", &geo->dom);
-
-	pr_err("ch_off addr=%u\n", &geo->ppaf.ch_off);
-	pr_err("ch_len addr=%u\n", &geo->ppaf.ch_len);
-	pr_err("lun_off addr=%u\n", &geo->ppaf.lun_off);
-	pr_err("lun_len addr=%u\n", &geo->ppaf.lun_len);
-	pr_err("pln_off addr=%u\n", &geo->ppaf.pln_off);
-	pr_err("pln_len addr=%u\n", &geo->ppaf.pln_len);
-	pr_err("blk_off addr=%u\n", &geo->ppaf.blk_off);
-	pr_err("blk_len addr=%u\n", &geo->ppaf.blk_len);
-	pr_err("pg_off addr=%u\n", &geo->ppaf.pg_off);
-	pr_err("pg_len addr=%u\n", &geo->ppaf.pg_len);
-	pr_err("sect_off addr=%u\n", &geo->ppaf.sect_off);
-	pr_err("sect_len addr=%u\n", &geo->ppaf.sect_len);
-
-	pr_err("mtype addr=%u\n", &geo->ggrp.mtype);
-	pr_err("fmtype addr=%u\n", &geo->ggrp.fmtype);
-	pr_err("num_ch addr=%u\n", &geo->ggrp.num_ch);
-	pr_err("num_lun addr=%u\n", &geo->ggrp.num_lun);
-	pr_err("num_pln addr=%u\n", &geo->ggrp.num_pln);
-	pr_err("num_blk addr=%u\n", &geo->ggrp.num_blk);
-	pr_err("num_pg addr=%u\n", &geo->ggrp.num_pg);
-	pr_err("fpg_sz addr=%u\n", &geo->ggrp.fpg_sz);
-	pr_err("csecs addr=%u\n", &geo->ggrp.csecs);
-	pr_err("sos addr=%u\n", &geo->ggrp.sos);
-	pr_err("trdt addr=%u\n", &geo->ggrp.trdt);
-	pr_err("trdm addr=%u\n", &geo->ggrp.trdm);
-	pr_err("tprt addr=%u\n", &geo->ggrp.tprt);
-	pr_err("tprm addr=%u\n", &geo->ggrp.tprm);
-	pr_err("tbet addr=%u\n", &geo->ggrp.tbet);
-	pr_err("tbem addr=%u\n", &geo->ggrp.tbem);
-	pr_err("mpos addr=%u\n", &geo->ggrp.mpos);
-	pr_err("mccap addr=%u\n", &geo->ggrp.mccap);
-	pr_err("cpar addr=%u\n", &geo->ggrp.cpar);
-
-	pr_err("id addr=%u\n", &geo->ggrp.l2ptbl.id);
-	pr_err("num_pairs addr=%u\n", &geo->ggrp.l2ptbl.mlc.num_pairs);
-	pr_err("pairs addr=%u\n", &geo->ggrp.l2ptbl.mlc.pairs);
-	
 	tmpbuf = kmalloc(count, GFP_KERNEL);
 	if (!tmpbuf) {
 		pr_err("RAMUFS: kmalloc failed, out of memory\n");
@@ -256,19 +294,10 @@ int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 			ret = -EINVAL;
 			goto destroy_buf;
 		}
-		if (tmpbuf[i] == 'v')
-			status = parse_config_ufs_geo_v(tmpbuf, &i, count, geo);
-		else if (tmpbuf[i] == 'c') 
-			status = parse_config_ufs_geo_c(tmpbuf, &i, count, geo);
-		else if (tmpbuf[i] == 'd')
-			status = parse_config_ufs_geo_d(tmpbuf, &i, count, geo);
-		else if (tmpbuf[i] == 0x20)
+		if (tmpbuf[i] == 0x20)
 			continue;
-		else {
-			pr_err("RAMUFS: __parse_config_ufs_geo, bad status: %d\n", status);
-			ret = -EINVAL;
-			goto destroy_buf;
-		}
+
+		status = parse_config_ufs_geo(tmpbuf, &i, count, geo);
 	}
 
 destroy_buf:
