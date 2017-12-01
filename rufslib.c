@@ -37,7 +37,7 @@ static int __parse_config_parse_value(char *buf, int pos, void *val,
 	int i, j=0, flag=0, ret;
 	char tmpbuf[32], dst[8];
 
-	memset(dst, 0, 8)
+	memset(dst, 0, 8);
 	for (i=0; pos + i < len; i++) {
 		if (buf[pos+i] == 0x20 || buf[pos+i] == 0) {
 			if (flag == 0) {
@@ -46,9 +46,15 @@ static int __parse_config_parse_value(char *buf, int pos, void *val,
 				if (j == 0 || j > 17)
 					return RU_PARSE_STATUS_ERROR;
 				tmpbuf[j] = 0;
+
+				pr_err("j=%d, i=%d, buf=%s, tmpbuf=%s\n", j, i, buf, tmpbuf);
+				
 				ret = hex2bin(dst, tmpbuf, (j-1)/2);
 				if (ret)
 					return RU_PARSE_STATUS_ERROR;
+
+				pr_err("dst=%s\n", dst);
+				
 				if (cnt == 1)
 					*(u8*)val = (u8)dst[0];
 				else if (cnt == 2) 
@@ -93,7 +99,7 @@ static void __test__(void)
 	pr_err("a1=%d\n", status);
 	status = __parse_config_parse_key(a2, "cde", 2, 9);
 	pr_err("a2=%d\n", status);
-	status = __parse_config_parse_key(a3, "cde", 3, 9);
+	status = __parse_config_parse_key(a3, "cde", 0, 9);
 	pr_err("a3=%d\n", status);
 	status = __parse_config_parse_key(a4, "as", 2, 9);
 	pr_err("a4=%d\n", status);
