@@ -265,10 +265,10 @@ static int parse_config_ufs_geo(const char *buf, int *pos,
 	*pos += offset;
 	p = &geo->version + attr->offset;
 
-	if (attr->typesize == 1)		p = (u8)val;
-	else if (attr->typesize == 2)	p = (u16)val;
-	else if (attr->typesize == 4)	p = (u32)val;
-	else if (attr->typesize == 8)	p = (u64)val;
+	if (attr->typesize == 1)		*p = (u8)val;
+	else if (attr->typesize == 2)	*p = (u16)val;
+	else if (attr->typesize == 4)	*p = (u32)val;
+	else if (attr->typesize == 8)	*p = (u64)val;
 	else							return -EINVAL;
 
 	return RU_PARSE_STATUS_SPACE;
@@ -290,22 +290,18 @@ int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 	/* begin to parse input string */
 	status = RU_PARSE_STATUS_SPACE;
 	for (i=0; i < count; i++) {
-		pr_err("val=%d\n", tmpbuf[i]);
 		if (status != RU_PARSE_STATUS_SPACE) {
 			ret = -EINVAL;
 			goto destroy_buf;
 		}
 		if (tmpbuf[i] == 0x20)
 			continue;
-
 		status = parse_config_ufs_geo(tmpbuf, &i, count, geo);
-		pr_err("status=%d\n", status);
 	}
 
 destroy_buf:
 	kfree(tmpbuf);
 out:
-	pr_err("ret=%d\n", ret);
 	return ret;
 }
 
