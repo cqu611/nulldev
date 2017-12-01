@@ -1,11 +1,11 @@
 #include "ramufs.h"
 
 static const struct ufs_geo_config_attr_tbl prs_cfg_ufs_geo[] = {
-	{ "version", 0, 0 }
-	{ "vnvmt", 0, 0 }
-	{ "cgrps", 0, 0 }
-	{ "cap", 0, 0 }
-	{ "dom", 0, 0 }
+	{ "version", 0, 0 },
+	{ "vnvmt", 0, 0 },
+	{ "cgrps", 0, 0 },
+	{ "cap", 0, 0 },
+	{ "dom", 0, 0 },
 	{ NULL, 0, 0 }
 };
 
