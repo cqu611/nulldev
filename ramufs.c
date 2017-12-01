@@ -313,6 +313,50 @@ static int __init ramufs_init(void)
 		goto free_ufs;
 	}
 
+	pr_err("geo addr=%u\n", geo);
+	pr_err("version addr=%u\n", &geo->version);
+	pr_err("vnvmt addr=%u\n", &geo->vnvmt);
+	pr_err("cgrps addr=%u\n", &geo->cgrps);
+	pr_err("cap addr=%u\n", &geo->cap);
+	pr_err("dom addr=%u\n", &geo->dom);
+
+	pr_err("ch_off addr=%u\n", &geo->ppaf.ch_off);
+	pr_err("ch_len addr=%u\n", &geo->ppaf.ch_len);
+	pr_err("lun_off addr=%u\n", &geo->ppaf.lun_off);
+	pr_err("lun_len addr=%u\n", &geo->ppaf.lun_len);
+	pr_err("pln_off addr=%u\n", &geo->ppaf.pln_off);
+	pr_err("pln_len addr=%u\n", &geo->ppaf.pln_len);
+	pr_err("blk_off addr=%u\n", &geo->ppaf.blk_off);
+	pr_err("blk_len addr=%u\n", &geo->ppaf.blk_len);
+	pr_err("pg_off addr=%u\n", &geo->ppaf.pg_off);
+	pr_err("pg_len addr=%u\n", &geo->ppaf.pg_len);
+	pr_err("sect_off addr=%u\n", &geo->ppaf.sect_off);
+	pr_err("sect_len addr=%u\n", &geo->ppaf.sect_len);
+
+	pr_err("mtype addr=%u\n", &geo->ggrp.mtype);
+	pr_err("fmtype addr=%u\n", &geo->ggrp.fmtype);
+	pr_err("num_ch addr=%u\n", &geo->ggrp.num_ch);
+	pr_err("num_lun addr=%u\n", &geo->ggrp.num_lun);
+	pr_err("num_pln addr=%u\n", &geo->ggrp.num_pln);
+	pr_err("num_blk addr=%u\n", &geo->ggrp.num_blk);
+	pr_err("num_pg addr=%u\n", &geo->ggrp.num_pg);
+	pr_err("fpg_sz addr=%u\n", &geo->ggrp.fpg_sz);
+	pr_err("csecs addr=%u\n", &geo->ggrp.csecs);
+	pr_err("sos addr=%u\n", &geo->ggrp.sos);
+	pr_err("trdt addr=%u\n", &geo->ggrp.trdt);
+	pr_err("trdm addr=%u\n", &geo->ggrp.trdm);
+	pr_err("tprt addr=%u\n", &geo->ggrp.tprt);
+	pr_err("tprm addr=%u\n", &geo->ggrp.tprm);
+	pr_err("tbet addr=%u\n", &geo->ggrp.tbet);
+	pr_err("tbem addr=%u\n", &geo->ggrp.tbem);
+	pr_err("mpos addr=%u\n", &geo->ggrp.mpos);
+	pr_err("mccap addr=%u\n", &geo->ggrp.mccap);
+	pr_err("cpar addr=%u\n", &geo->ggrp.cpar);
+
+	pr_err("id addr=%u\n", &geo->ggrp.l2ptbl.id);
+	pr_err("num_pairs addr=%u\n", &geo->ggrp.l2ptbl.mlc.num_pairs);
+	pr_err("pairs addr=%u\n", &geo->ggrp.l2ptbl.mlc.pairs);
+
 	pr_info("RAMUFS: ramufs loaded\n");
 	return ret;
 
