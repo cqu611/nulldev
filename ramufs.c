@@ -313,7 +313,7 @@ static int __init ramufs_init(void)
 		goto free_ufs;
 	}
 
-	pr_err("geo addr=%u\n", geo);
+	pr_err("geo addr=%u\n", &geo);
 	pr_err("version addr=%u\n", &geo->version);
 	pr_err("vnvmt addr=%u\n", &geo->vnvmt);
 	pr_err("cgrps addr=%u\n", &geo->cgrps);
