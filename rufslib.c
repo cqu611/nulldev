@@ -155,13 +155,13 @@ static int parse_config_ufs_geo_v(const char *buf, int *pos,
 			return ret;
 		*pos += offset;
 		if (keylen == 7)
-			geo.version = val;
+			geo->version = val;
 		else
-			geo.vnvmt = val;
+			geo->vnvmt = val;
 		return RU_PARSE_STATUS_SPACE;
 	} else {
 		pr_err("RAMUFS: parse_config_ufs_geo_v, bad status: %d\n", ret);
-		return = -EINVAL;
+		return -EINVAL;
 	}
 }
 
@@ -187,13 +187,13 @@ static int parse_config_ufs_geo_c(const char *buf, int *pos,
 			return ret;
 		*pos += offset;
 		if (keylen == 5)
-			geo.cgrps = (u8)val;
+			geo->cgrps = (u8)val;
 		else
-			geo.cap = val;
+			geo->cap = val;
 		return RU_PARSE_STATUS_SPACE;
 	} else {
 		pr_err("RAMUFS: parse_config_ufs_geo_c, bad status: %d\n", ret);
-		return = -EINVAL;
+		return -EINVAL;
 	}
 }
 
@@ -213,11 +213,11 @@ static int parse_config_ufs_geo_d(const char *buf, int *pos,
 		if (ret == RU_PARSE_STATUS_ERROR)
 			return ret;
 		*pos += offset;
-		geo.dom = val;
+		geo->dom = val;
 		return RU_PARSE_STATUS_SPACE;
 	} else {
 		pr_err("RAMUFS: parse_config_ufs_geo_d, bad status: %d\n", ret);
-		return = -EINVAL;
+		return -EINVAL;
 	}
 }
 
