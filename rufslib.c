@@ -57,23 +57,27 @@ static int __parse_config_parse_value(char *buf, int pos, void *val,
 				if (ret)
 					return RU_PARSE_STATUS_ERROR;
 
-				pr_err("dst=%c%c%c%c%c%c%c%c\n", dst[0],dst[1],dst[2]dst[3],dst[4],dst[5],dst[6],dst[7]);
+				pr_err("dst=%d,%d,%d,%d,%d,%d,%d,%d\n", dst[0],dst[1],dst[2],dst[3],dst[4],dst[5],dst[6],dst[7]);
 				
 				if (cnt == 1) {
 					val8 = (u8*)val;
+					pr_err("&val=%d\n", val8);
 					*val8 = (u8)dst[0];
 				}
 				else if (cnt == 2) {
 					val16 = (u16*)val;
+					pr_err("&val=%d\n", val16);
 					*val16 = ((u16)dst[0] << 8) | (u16)dst[1];
 				}
 				else if (cnt == 4) {
 					val32 = (u32*)val;
+					pr_err("&val=%d\n", val32);
 					*val32 = ((u32)dst[0] << 24) | ((u32)dst[1] << 16)
 							| ((u32)dst[2] << 8) | (u32)dst[3];
 				}
 				else if (cnt == 8) {
 					val64 = (u64*)val;
+					pr_err("&val=%d\n", val64);
 					*val64 = ((u64)dst[0] << 56) | ((u64)dst[1] << 48)
 							| ((u64)dst[2] << 40) | ((u64)dst[3] << 32)
 							| ((u64)dst[4] << 24) | ((u64)dst[5] << 16)
@@ -101,11 +105,15 @@ static void __test__(void)
 	char *a3 = "abcdefgh";
 	char *a4 = "12asbt 4";
 	char *b1 = "12      ";
-	char *b2 = " 454  ad";
-	char *b3 = "  456ab ";
-	char *b4 = " 34efg9 ";
+	char *b2 = " 45a4 ad";
+	char *b3 = "  456b  ";
+	char *b4 = " 34efe9 ";
 	int status;
-	int val, valen;
+	u8 val8;
+	u16 val16;
+	u32 val32;
+	u64 val64,
+	int valen;
 
 	status = __parse_config_parse_key(a1, "abcd", 0, 9);
 	pr_err("a1=%d\n", status);
@@ -116,14 +124,14 @@ static void __test__(void)
 	status = __parse_config_parse_key(a4, "as", 2, 9);
 	pr_err("a4=%d\n", status);
 
-	status = __parse_config_parse_value(b1, 0, &val, &valen, 9, 1);
-	pr_err("b1=%d, value=%u, valen=%d\n", status, val, valen);
-	status = __parse_config_parse_value(b2, 1, &val, &valen, 9, 2);
-	pr_err("b2=%d, value=%u, valen=%d\n", status, val, valen);
-	status = __parse_config_parse_value(b3, 2, &val, &valen, 9, 4);
-	pr_err("b3=%d, value=%u, valen=%d\n", status, val, valen);
-	status = __parse_config_parse_value(b4, 1, &val, &valen, 9, 8);
-	pr_err("b4=%d, value=%lu, valen=%d\n", status, val, valen);
+	status = __parse_config_parse_value(b1, 0, &val8, &valen, 9, 1);
+	pr_err("b1=%d, value=%u, valen=%d, &value=%d, &valen=%d\n", status, val8, valen, &val8, &valen);
+	status = __parse_config_parse_value(b2, 1, &val16, &valen, 9, 2);
+	pr_err("b2=%d, value=%u, valen=%d, &value=%d, &valen=%d\n", status, val16, valen, &val16, &valen);
+	status = __parse_config_parse_value(b3, 2, &val32, &valen, 9, 4);
+	pr_err("b3=%d, value=%u, valen=%d, &value=%d, &valen=%d\n", status, val32, valen, &val32, &valen);
+	status = __parse_config_parse_value(b4, 1, &val64, &valen, 9, 8);
+	pr_err("b4=%d, value=%lu, valen=%d, &value=%d, &valen=%d\n", status, val64, valen, &val64, &valen);
 }
 
 int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
