@@ -57,7 +57,7 @@ static int __parse_config_parse_value(char *buf, int pos, void *val,
 				pr_err("dst=%s\n", dst);
 				
 				if (cnt == 1)
-					(u8*)val = (u8)dst[0];
+					*val = (u8)dst[0];
 				else if (cnt == 2) 
 					(u16*)val = ((u16)dst[0] << 8) + (u16)dst[1];
 				else if (cnt == 4)
