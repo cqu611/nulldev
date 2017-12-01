@@ -243,10 +243,12 @@ static int parse_config_ufs_geo(const char *buf, int *pos,
 				size_t count, struct ufs_geo *geo)
 {
 	int ret, offset;
-	u64 val;
-	void *p;
+	u64 val, *v64;
+	u8 *v8;
+	u16 *v16;
+	u32 *v32;
 	struct ufs_geo_config_attr_tbl *attr;
-	pr_err("buff=%s\n", buf);
+	
 	attr = &prs_cfg_ufs_geo[0];
 	while(attr->name) {
 		ret = parse_config_parse_key(buf, attr->name, *pos, count);
@@ -263,13 +265,24 @@ static int parse_config_ufs_geo(const char *buf, int *pos,
 	if (ret == RU_PARSE_STATUS_ERROR)
 		return ret;
 	*pos += offset;
-	p = &geo->version + attr->offset;
+	v8 = &geo->version + attr->offset;
 
-	if (attr->typesize == 1)		(u8)*p = (u8)val;
-	else if (attr->typesize == 2)	(u16)*p = (u16)val;
-	else if (attr->typesize == 4)	(u32)*p = (u32)val;
-	else if (attr->typesize == 8)	(u64)*p = (u64)val;
-	else							return -EINVAL;
+	if (attr->typesize == 1)		
+		*v8 = (u8)val;
+	else if (attr->typesize == 2) {
+		v16 = v8;
+		*v16 = (u16)val;
+	}
+	else if (attr->typesize == 4) {
+		v32 = v8;
+		*v32 = (u32)val;
+	}
+	else if (attr->typesize == 8) {
+		v64 = v8;
+		*v64 = (u64)val;
+	}
+	else
+		return -EINVAL;
 
 	return RU_PARSE_STATUS_SPACE;
 }
