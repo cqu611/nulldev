@@ -246,7 +246,7 @@ static int parse_config_ufs_geo(const char *buf, int *pos,
 	u64 val;
 	void *p;
 	struct ufs_geo_config_attr_tbl *attr;
-
+	pr_err("buff=%s\n", buf);
 	attr = &prs_cfg_ufs_geo[0];
 	while(attr->name) {
 		ret = parse_config_parse_key(buf, attr->name, *pos, count);
