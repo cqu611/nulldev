@@ -58,7 +58,7 @@ static int __parse_config_parse_value(char *buf, int pos, void *val,
 				if (ret)
 					return RU_PARSE_STATUS_ERROR;
 
-				pr_err("dst=%s\n", dst);
+				pr_err("dst=%c%c%c%c%c%c%c%c\n", dst[0],dst[1],dst[2]dst[3],dst[4],dst[5],dst[6],dst[7]);
 				
 				if (cnt == 1) {
 					val8 = (u8*)val;
@@ -104,7 +104,7 @@ static void __test__(void)
 	char *b1 = "12      ";
 	char *b2 = " 454  ad";
 	char *b3 = "  456ab ";
-	char *b4 = " 34efg  ";
+	char *b4 = " 34efg9 ";
 	int status;
 	int val, valen;
 
@@ -118,13 +118,13 @@ static void __test__(void)
 	pr_err("a4=%d\n", status);
 
 	status = __parse_config_parse_value(b1, 0, &val, &valen, 9, 1);
-	pr_err("b1=%d, value=%d, valen=%d\n", status, val, valen);
+	pr_err("b1=%d, value=%c, valen=%d\n", status, val, valen);
 	status = __parse_config_parse_value(b2, 1, &val, &valen, 9, 2);
-	pr_err("b2=%d, value=%d, valen=%d\n", status, val, valen);
+	pr_err("b2=%d, value=%u, valen=%d\n", status, val, valen);
 	status = __parse_config_parse_value(b3, 2, &val, &valen, 9, 4);
-	pr_err("b3=%d, value=%d, valen=%d\n", status, val, valen);
+	pr_err("b3=%d, value=%u, valen=%d\n", status, val, valen);
 	status = __parse_config_parse_value(b4, 1, &val, &valen, 9, 8);
-	pr_err("b4=%d, value=%d, valen=%d\n", status, val, valen);
+	pr_err("b4=%d, value=%lu, valen=%d\n", status, val, valen);
 }
 
 int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
