@@ -13,8 +13,11 @@ fi
 
 if [ $1 = "show" ]; then
     cat /sys/kernel/ramufs/ufs_geo
+    echo
     cat /sys/kernel/ramufs/ppa_fmt
+    echo
     cat /sys/kernel/ramufs/cfg_grp
+    echo
     cat /sys/kernel/ramufs/l2p_tbl
     exit 0  
 fi
