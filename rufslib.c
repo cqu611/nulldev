@@ -262,25 +262,10 @@ static int parse_config_ufs_geo(const char *buf, int *pos,
 	
 	if (ret == RU_PARSE_STATUS_ERROR)
 		return ret;
+	
 	*pos += offset;
 	p = &geo->version + attr->offset;
-	
-	if (attr->typesize == 1) {
-		//val <<= 56;
-		memcpy(p, &val, 1);
-	}
-	else if (attr->typesize == 2) {
-		//val <<= 48;
-		memcpy(p, &val, 2);
-	}
-	else if (attr->typesize == 4) {
-		//val <<= 32;
-		memcpy(p, &val, 4);
-	}
-	else if (attr->typesize == 8)
-		memcpy(p, &val, 8);
-	else
-		return -EINVAL;
+	memcpy(p, &val, attr->typesize);
 
 	return RU_PARSE_STATUS_SPACE;
 }
