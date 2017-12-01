@@ -35,6 +35,10 @@ static int __parse_config_parse_value(char *buf, int pos, void *val,
 				int *off, int len, int cnt)
 {
 	int i, j=0, flag=0, ret;
+	u8 *val8;
+	u16 *val16;
+	u32 *val32;
+	u64 *val64;
 	char tmpbuf[32], dst[8];
 
 	memset(dst, 0, 8);
@@ -56,18 +60,26 @@ static int __parse_config_parse_value(char *buf, int pos, void *val,
 
 				pr_err("dst=%s\n", dst);
 				
-				if (cnt == 1)
-					*val = (u8)dst[0];
-				else if (cnt == 2) 
-					(u16*)val = ((u16)dst[0] << 8) + (u16)dst[1];
-				else if (cnt == 4)
-					(u32*)val = ((u32)dst[0] << 24) + ((u32)dst[1] << 16)
+				if (cnt == 1) {
+					val8 = (u8*)val;
+					*val8 = (u8)dst[0];
+				}
+				else if (cnt == 2) {
+					val16 = (u16*)val;
+					*val16 = ((u16)dst[0] << 8) + (u16)dst[1];
+				}
+				else if (cnt == 4) {
+					val32 = (u32*)val;
+					*val32 = ((u32)dst[0] << 24) + ((u32)dst[1] << 16)
 							+ ((u32)dst[2] << 8) + (u32)dst[3];
-				else if (cnt == 8)
-					(u64*)val = ((u64)dst[0] << 56) + ((u64)dst[1] << 48)
+				}
+				else if (cnt == 8) {
+					val64 = (u64*)val;
+					*val64 = ((u64)dst[0] << 56) + ((u64)dst[1] << 48)
 							+ ((u64)dst[2] << 40) + ((u64)dst[3] << 32)
 							+ ((u64)dst[4] << 24) + ((u64)dst[5] << 16)
 							+ ((u64)dst[6] << 8) + (u64)dst[7];
+				}
 				else
 					return RU_PARSE_STATUS_ERROR;
 				*off = i;
