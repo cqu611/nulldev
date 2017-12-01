@@ -162,7 +162,7 @@ static ssize_t __show_l2p_tbl(char *buf)
 
 	ret = sprintf(buf, "\
 	ID codes for READ ID command    =%#018llx\n\
-	Number of Pairs                 =%06x\n\
+	Number of Pairs                 =%#06x\n\
 	Pairs Values in Hexadecimal:\n%s\n", 
 	id, geo.ggrp.l2ptbl.mlc.num_pairs, hex);
 
