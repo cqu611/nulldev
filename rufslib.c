@@ -221,8 +221,6 @@ static int parse_config_ufs_geo_d(const char *buf, int *pos,
 	}
 }
 
-
-
 int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 {
 	int i, ret = 0, status;
@@ -243,7 +241,6 @@ int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 			ret = -EINVAL;
 			goto destroy_buf;
 		}
-		/* try to match version or vnvmt */
 		if (tmpbuf[i] == 'v')
 			status = parse_config_ufs_geo_v(tmpbuf, &i, count, geo);
 		else if (tmpbuf[i] == 'c') 
@@ -265,9 +262,165 @@ out:
 	return ret;
 }
 
+static int parse_config_ppa_fmt_c(const char *buf, int *pos,
+				size_t count, struct ufs_geo *geo)
+{
+	int ret, offset, keylen=6, valtyp=1, nr=0;
+	u8 val;
+
+	ret = parse_config_parse_key(buf, "ch_off", *pos, count);
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 1;
+		ret = parse_config_parse_key(buf, "ch_len", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_MATCHED) {
+		*pos += keylen;
+		ret = parse_config_parse_value(buf, *pos, &val, &offset, count, valtyp);
+		if (ret == RU_PARSE_STATUS_ERROR)
+			return ret;
+		*pos += offset;
+		if (nr == 0) 
+			geo->ppaf.ch_off = val;
+		else
+			geo->ppaf.ch_len = val;
+		return RU_PARSE_STATUS_SPACE;
+	} else {
+		pr_err("RAMUFS: parse_config_ppa_fmt_c, bad status: %d\n", ret);
+		return -EINVAL;
+	}
+}
+
+
+static int parse_config_ppa_fmt_l(const char *buf, int *pos,
+				size_t count, struct ufs_geo *geo)
+{
+	int ret, offset, keylen=7, valtyp=1, nr=0;
+	u8 val;
+
+	ret = parse_config_parse_key(buf, "lun_off", *pos, count);
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 1;
+		ret = parse_config_parse_key(buf, "lun_len", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_MATCHED) {
+		*pos += keylen;
+		ret = parse_config_parse_value(buf, *pos, &val, &offset, count, valtyp);
+		if (ret == RU_PARSE_STATUS_ERROR)
+			return ret;
+		*pos += offset;
+		if (nr == 0) 
+			geo->ppaf.lun_off = val;
+		else
+			geo->ppaf.lun_len = val;
+		return RU_PARSE_STATUS_SPACE;
+	} else {
+		pr_err("RAMUFS: parse_config_ppa_fmt_l, bad status: %d\n", ret);
+		return -EINVAL;
+	}
+}
+
+static int parse_config_ppa_fmt_p(const char *buf, int *pos,
+				size_t count, struct ufs_geo *geo)
+{
+	int ret, offset, keylen=7, valtyp=1, nr=0;
+	u8 val;
+
+	ret = parse_config_parse_key(buf, "pln_off", *pos, count);
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 1;
+		ret = parse_config_parse_key(buf, "pln_len", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 2;
+		keylen = 6;
+		ret = parse_config_parse_key(buf, "pg_off", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 3;
+		keylen = 6;
+		ret = parse_config_parse_key(buf, "pg_len", *pos, count);
+	}
+	
+	if (ret == RU_PARSE_STATUS_MATCHED) {
+		*pos += keylen;
+		ret = parse_config_parse_value(buf, *pos, &val, &offset, count, valtyp);
+		if (ret == RU_PARSE_STATUS_ERROR)
+			return ret;
+		*pos += offset;
+		if (nr == 0) 
+			geo->ppaf.pln_off = val;
+		else if (nr == 1)
+			geo->ppaf.pln_len = val;
+		else if (nr == 2)
+			geo->ppaf.pg_off = val;
+		else
+			geo->ppaf.pg_len = val;
+		return RU_PARSE_STATUS_SPACE;
+	} else {
+		pr_err("RAMUFS: parse_config_ppa_fmt_p, bad status: %d\n", ret);
+		return -EINVAL;
+	}
+}
+
+static int parse_config_ppa_fmt_b(const char *buf, int *pos,
+				size_t count, struct ufs_geo *geo)
+{
+	int ret, offset, keylen=7, valtyp=1, nr=0;
+	u8 val;
+
+	ret = parse_config_parse_key(buf, "blk_off", *pos, count);
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 1;
+		ret = parse_config_parse_key(buf, "blk_len", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_MATCHED) {
+		*pos += keylen;
+		ret = parse_config_parse_value(buf, *pos, &val, &offset, count, valtyp);
+		if (ret == RU_PARSE_STATUS_ERROR)
+			return ret;
+		*pos += offset;
+		if (nr == 0) 
+			geo->ppaf.blk_off = val;
+		else
+			geo->ppaf.blk_len = val;
+		return RU_PARSE_STATUS_SPACE;
+	} else {
+		pr_err("RAMUFS: parse_config_ppa_fmt_b, bad status: %d\n", ret);
+		return -EINVAL;
+	}
+}
+
+static int parse_config_ppa_fmt_s(const char *buf, int *pos,
+				size_t count, struct ufs_geo *geo)
+{
+	int ret, offset, keylen=8, valtyp=1, nr=0;
+	u8 val;
+
+	ret = parse_config_parse_key(buf, "sect_off", *pos, count);
+	if (ret == RU_PARSE_STATUS_UNMATCH) {
+		nr = 1;
+		ret = parse_config_parse_key(buf, "sect_len", *pos, count);
+	}
+	if (ret == RU_PARSE_STATUS_MATCHED) {
+		*pos += keylen;
+		ret = parse_config_parse_value(buf, *pos, &val, &offset, count, valtyp);
+		if (ret == RU_PARSE_STATUS_ERROR)
+			return ret;
+		*pos += offset;
+		if (nr == 0) 
+			geo->ppaf.sect_off = val;
+		else
+			geo->ppaf.sect_len = val;
+		return RU_PARSE_STATUS_SPACE;
+	} else {
+		pr_err("RAMUFS: parse_config_ppa_fmt_s, bad status: %d\n", ret);
+		return -EINVAL;
+	}
+}
+
 int __parse_config_ppa_fmt(const char *buf, size_t count, struct ufs_geo *geo)
 {
-	int i, ret = 0;
+	int i, ret = 0, status;
 	char *tmpbuf;
 	
 	tmpbuf = kmalloc(count, GFP_KERNEL);
@@ -275,17 +428,37 @@ int __parse_config_ppa_fmt(const char *buf, size_t count, struct ufs_geo *geo)
 		pr_err("RAMUFS: kmalloc failed, out of memory\n");
 		ret = -ENOMEM;
 		goto out;
+	}	
+	parse_config_init(tmpbuf, buf, count);
+
+	/* begin to parse input string */
+	status = RU_PARSE_STATUS_SPACE;
+	for (i=0; i < count; i++) {
+		if (status != RU_PARSE_STATUS_SPACE) {
+			ret = -EINVAL;
+			goto destroy_buf;
+		}
+		if (tmpbuf[i] == 'c')
+			status = parse_config_ppa_fmt_c(tmpbuf, &i, count, geo);
+		else if (tmpbuf[i] == 'l') 
+			status = parse_config_ppa_fmt_l(tmpbuf, &i, count, geo);
+		else if (tmpbuf[i] == 'p')
+			status = parse_config_ppa_fmt_p(tmpbuf, &i, count, geo);
+		else if (tmpbuf[i] == 'b')
+			status = parse_config_ppa_fmt_b(tmpbuf, &i, count, geo);
+		else if (tmpbuf[i] == 's')
+			status = parse_config_ppa_fmt_s(tmpbuf, &i, count, geo);
+		else if (tmpbuf[i] == 0x20)
+			continue;
+		else {
+			pr_err("RAMUFS: __parse_config_ppa_fmt, bad status: %d\n", status);
+			ret = -EINVAL;
+			goto destroy_buf;
+		}
 	}
 
-	memcpy(tmpbuf, buf, count);
-	
-	for (i=0; i < count; i++)
-		if (tmpbuf[i] == '\t' || tmpbuf[i] == '\r' || tmpbuf[i] == '\n')
-			tmpbuf[i] = 0x20;
-	
-	
+destroy_buf:
 	kfree(tmpbuf);
-
 out:
 	return ret;
 }
