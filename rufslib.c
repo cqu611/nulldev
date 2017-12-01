@@ -54,7 +54,6 @@ static int __parse_config_parse_value(char *buf, int pos, void *val,
 				pr_err("j=%d, i=%d, buf=%s, tmpbuf=%s\n", j, i, buf, tmpbuf);
 				
 				ret = hex2bin(dst, tmpbuf, j/2);
-				pr_err("ret=%d,", ret);
 				if (ret)
 					return RU_PARSE_STATUS_ERROR;
 
@@ -66,19 +65,19 @@ static int __parse_config_parse_value(char *buf, int pos, void *val,
 				}
 				else if (cnt == 2) {
 					val16 = (u16*)val;
-					*val16 = ((u16)dst[0] << 8) + (u16)dst[1];
+					*val16 = ((u16)dst[0] << 8) | (u16)dst[1];
 				}
 				else if (cnt == 4) {
 					val32 = (u32*)val;
-					*val32 = ((u32)dst[0] << 24) + ((u32)dst[1] << 16)
-							+ ((u32)dst[2] << 8) + (u32)dst[3];
+					*val32 = ((u32)dst[0] << 24) | ((u32)dst[1] << 16)
+							| ((u32)dst[2] << 8) | (u32)dst[3];
 				}
 				else if (cnt == 8) {
 					val64 = (u64*)val;
-					*val64 = ((u64)dst[0] << 56) + ((u64)dst[1] << 48)
-							+ ((u64)dst[2] << 40) + ((u64)dst[3] << 32)
-							+ ((u64)dst[4] << 24) + ((u64)dst[5] << 16)
-							+ ((u64)dst[6] << 8) + (u64)dst[7];
+					*val64 = ((u64)dst[0] << 56) | ((u64)dst[1] << 48)
+							| ((u64)dst[2] << 40) | ((u64)dst[3] << 32)
+							| ((u64)dst[4] << 24) | ((u64)dst[5] << 16)
+							| ((u64)dst[6] << 8) | (u64)dst[7];
 				}
 				else
 					return RU_PARSE_STATUS_ERROR;
@@ -118,7 +117,7 @@ static void __test__(void)
 	pr_err("a4=%d\n", status);
 
 	status = __parse_config_parse_value(b1, 0, &val, &valen, 9, 1);
-	pr_err("b1=%d, value=%c, valen=%d\n", status, val, valen);
+	pr_err("b1=%d, value=%u, valen=%d\n", status, val, valen);
 	status = __parse_config_parse_value(b2, 1, &val, &valen, 9, 2);
 	pr_err("b2=%d, value=%u, valen=%d\n", status, val, valen);
 	status = __parse_config_parse_value(b3, 2, &val, &valen, 9, 4);
