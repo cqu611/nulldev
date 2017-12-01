@@ -1,6 +1,3 @@
-#obj-m := nulldev.o
-#obj-m := lightnvm.o
-#obj-m := ramdisk.o
 obj-m := rufs.o
 rufs-objs := rufslib.o ramufs.o
 
