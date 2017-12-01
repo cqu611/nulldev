@@ -36,7 +36,7 @@ static int __parse_config_parse_value(char *buf, int pos, void *val,
 {
 	int i, j=0, flag=0, ret, tmpval;
 	u8 dst[8];
-	char tmpbuf[32];
+	char tmpbuf[17];
 
 	memset(dst, 0, 8);
 	for (i=0; pos + i < len; i++) {
@@ -49,7 +49,7 @@ static int __parse_config_parse_value(char *buf, int pos, void *val,
 				tmpbuf[j] = 0;
 
 				pr_err("j=%d, i=%d, buf=%s, tmpbuf=%s\n", j, i, buf, tmpbuf);
-				ret = kstrtoint(tmpbuf, 16, tmpval);
+				ret = kstrtoint(tmpbuf, 16, &tmpval);
 				//ret = hex2bin(dst, tmpbuf, j/2);
 				if (ret)
 					return RU_PARSE_STATUS_ERROR;
