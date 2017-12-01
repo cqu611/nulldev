@@ -265,10 +265,10 @@ static int parse_config_ufs_geo(const char *buf, int *pos,
 	*pos += offset;
 	p = &geo->version + attr->offset;
 
-	if (attr->typesize == 1)		*p = (u8)val;
-	else if (attr->typesize == 2)	*p = (u16)val;
-	else if (attr->typesize == 4)	*p = (u32)val;
-	else if (attr->typesize == 8)	*p = (u64)val;
+	if (attr->typesize == 1)		(u8)*p = (u8)val;
+	else if (attr->typesize == 2)	(u16)*p = (u16)val;
+	else if (attr->typesize == 4)	(u32)*p = (u32)val;
+	else if (attr->typesize == 8)	(u64)*p = (u64)val;
 	else							return -EINVAL;
 
 	return RU_PARSE_STATUS_SPACE;
