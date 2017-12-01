@@ -290,6 +290,7 @@ int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 	/* begin to parse input string */
 	status = RU_PARSE_STATUS_SPACE;
 	for (i=0; i < count; i++) {
+		pr_err("val=%d\n", tmpbuf[i]);
 		if (status != RU_PARSE_STATUS_SPACE) {
 			ret = -EINVAL;
 			goto destroy_buf;
@@ -304,6 +305,7 @@ int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 destroy_buf:
 	kfree(tmpbuf);
 out:
+	pr_err("ret=%d\n", ret);
 	return ret;
 }
 
