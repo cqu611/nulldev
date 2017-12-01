@@ -242,7 +242,8 @@ static int parse_config_ufs_geo_d(const char *buf, int *pos,
 static int parse_config_ufs_geo(const char *buf, int *pos,
 				size_t count, struct ufs_geo *geo)
 {
-	int ret, offset, *p;
+	int ret, offset;
+	void *p;
 	u64 val;
 	struct ufs_geo_config_attr_tbl *attr;
 	
