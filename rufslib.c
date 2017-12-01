@@ -298,6 +298,7 @@ int __parse_config_ufs_geo(const char *buf, size_t count, struct ufs_geo *geo)
 			continue;
 
 		status = parse_config_ufs_geo(tmpbuf, &i, count, geo);
+		pr_err("status=%d\n", status);
 	}
 
 destroy_buf:
