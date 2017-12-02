@@ -6,7 +6,7 @@ static const struct ufs_geo_config_attr_tbl prs_cfg_ufs_geo[] = {
 	{ "cgrps", 2, 1 },
 	{ "cap", 3, 4 },
 	{ "dom", 7, 4 },
-	{ NULL }
+	{ (char*)NULL, 0, 0 }
 };
 
 static const struct ufs_geo_config_attr_tbl prs_cfg_ppa_fmt[] = {
@@ -22,7 +22,7 @@ static const struct ufs_geo_config_attr_tbl prs_cfg_ppa_fmt[] = {
 	{ "pg_len", 20, 1 },
 	{ "sect_off", 21, 1 },
 	{ "sect_len", 22, 1 },
-	{ NULL, 0, 0 }
+	{ (char*)NULL, 0, 0 }
 };
 
 static const struct ufs_geo_config_attr_tbl prs_cfg_cfg_grp[] = {
@@ -45,14 +45,14 @@ static const struct ufs_geo_config_attr_tbl prs_cfg_cfg_grp[] = {
 	{ "mpos", 63, 4 },
 	{ "mccap", 67, 4 },
 	{ "cpar", 71, 2 },
-	{ NULL, 0, 0 }
+	{ (char*)NULL, 0, 0 }
 };
 
 static const struct ufs_geo_config_attr_tbl prs_cfg_l2p_tbl[] = {
 	{ "id", 73, 8 },
 	{ "num_pairs", 81, 2 },
 	/* { "pairs", 83, 886 }, */	/* do not set pairs into current table */
-	{ NULL, 0, 0 }
+	{ (char*)NULL, 0, 0 }
 };
 
 
