@@ -1,6 +1,6 @@
 #include "ramufs.h"
 
-static const struct ufs_geo_config_attr_tbl prs_cfg_ufs_geo[] = {
+static struct ufs_geo_config_attr_tbl prs_cfg_ufs_geo[] = {
 	{ "version", 0, 1 },
 	{ "vnvmt", 1, 1 },
 	{ "cgrps", 2, 1 },
@@ -9,7 +9,7 @@ static const struct ufs_geo_config_attr_tbl prs_cfg_ufs_geo[] = {
 	{ "", 0, 0 }
 };
 
-static const struct ufs_geo_config_attr_tbl prs_cfg_ppa_fmt[] = {
+static struct ufs_geo_config_attr_tbl prs_cfg_ppa_fmt[] = {
 	{ "ch_off", 11, 1 },
 	{ "ch_len", 12, 1 },
 	{ "lun_off", 13, 1 },
@@ -25,7 +25,7 @@ static const struct ufs_geo_config_attr_tbl prs_cfg_ppa_fmt[] = {
 	{ "", 0, 0 }
 };
 
-static const struct ufs_geo_config_attr_tbl prs_cfg_cfg_grp[] = {
+static struct ufs_geo_config_attr_tbl prs_cfg_cfg_grp[] = {
 	{ "mtype", 23, 1 },
 	{ "fmtype", 24, 1 },
 	{ "num_ch", 25, 1 },
@@ -48,7 +48,7 @@ static const struct ufs_geo_config_attr_tbl prs_cfg_cfg_grp[] = {
 	{ "", 0, 0 }
 };
 
-static const struct ufs_geo_config_attr_tbl prs_cfg_l2p_tbl[] = {
+static struct ufs_geo_config_attr_tbl prs_cfg_l2p_tbl[] = {
 	{ "id", 73, 8 },
 	{ "num_pairs", 81, 2 },
 	/* { "pairs", 83, 886 }, */	/* do not set pairs into current table */
