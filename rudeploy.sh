@@ -13,6 +13,7 @@ RAMUFS_H="ramufs.h"
 RUFSLIB_C="rufslib.c"
 UFS_KCONFIG="ufs_Kconfig"
 UFS_MAKEFILE="ufs_Makefile"
+_CONFIG="_config"
 
 PATH_UFS=${LINUFS}"/drivers/scsi/ufs/"
 
@@ -61,6 +62,11 @@ if [ $1 = "run" ] ; then
     deploy ${RUFSLIB_C} ${PATH_UFS}${RUFSLIB_C}
     deploy ${UFS_KCONFIG} ${PATH_UFS}"Kconfig"
     deploy ${UFS_MAKEFILE} ${PATH_UFS}"Makefile"
+    
+    echo "Rename .config as .config_bak"
+    mv ${LINUFS}"/.config" ${LINUFS}"/.config_bak"
+    deploy ${_CONFIG} ${LINUFS}"/.config"
+
     echo "Completed!"
     exit 0
 fi
